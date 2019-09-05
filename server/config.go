@@ -13,7 +13,10 @@ type Config struct {
 	ServerPort string `ini:"server_port"`
 	RpcPort    string `ini:"rpc_port"`
 	LogLevel   string `ini:"log_level"`
-	Heartbeat  int    `json:"heartbeat"`
+	Heartbeat  int    `ini:"heartbeat"`
+	RedisURL   string `ini:"redis_url"`
+	RedisPass  string `ini:"redis_pass"`
+	RedisDB    int    `ini:"redis_db"`
 }
 
 var (
@@ -43,6 +46,9 @@ func defaultConfig() *Config {
 		RpcPort:    "11211",
 		LogLevel:   "info",
 		Heartbeat:  30,
+		RedisURL:   "localhost:6379",
+		RedisPass:  "",
+		RedisDB:    0,
 	}
 }
 

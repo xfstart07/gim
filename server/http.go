@@ -15,11 +15,13 @@ import (
 )
 
 type httpServer struct {
+	ctx    *context
 	router *gin.Engine
 }
 
-func newHTTPServer() *httpServer {
+func newHTTPServer(ctx *context) *httpServer {
 	server := &httpServer{
+		ctx:    ctx,
 		router: gin.Default(),
 	}
 
@@ -30,7 +32,7 @@ func newHTTPServer() *httpServer {
 
 // 注册接口
 func (s *httpServer) setRouter() {
-	s.router.POST("/registerAccount", registerAccount)
+	s.router.POST("/registerAccount", s.registerAccount)
 }
 
 func (s *httpServer) Run() {
@@ -41,7 +43,7 @@ func (s *httpServer) Run() {
 }
 
 // example: curl -X POST --header 'Content-Type: application/json' -d '{"user_name": "leon"}' http://localhost:8081/registerAccount
-func registerAccount(ctx *gin.Context) {
+func (s *httpServer) registerAccount(ctx *gin.Context) {
 	user := model.User{}
 	err := ctx.Bind(&user)
 	if err != nil {
@@ -49,12 +51,17 @@ func registerAccount(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: register account，store redis
+	// register account
+	register, err := s.ctx.server.accountRegister(user)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, model.ErrResult{Message: err.Error()})
+		return
+	}
 
 	ctx.JSON(http.StatusCreated, model.CodeResult{
 		Code:    "0",
-		Message: "success",
-		Data:    user,
+		Message: "注册成功",
+		Data:    register,
 	})
-	lg.Logger().Info("注册用户成功", zap.Any("params", user))
+	lg.Logger().Info("注册用户成功", zap.Any("account", register))
 }
