@@ -4,8 +4,10 @@
 package server
 
 import (
+	"fmt"
 	"gim/internal/lg"
 	"gim/internal/util"
+	"net"
 
 	"github.com/go-redis/redis"
 )
@@ -34,6 +36,15 @@ func (s *Server) Main() {
 	server := newHTTPServer(ctx)
 	s.waitGroup.Wrap(func() {
 		server.Run()
+	})
+
+	rpcSrv := NewRpcServer(ctx)
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", GetConfig().RpcPort))
+	if err != nil {
+		panic(err)
+	}
+	s.waitGroup.Wrap(func() {
+		rpcSrv.Run(listener)
 	})
 
 	s.waitGroup.Wait()
