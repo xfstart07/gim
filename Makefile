@@ -1,4 +1,4 @@
-.PHONY: print
+.PHONY: print gen_proto vet_server run_server
 
 # Golang Flags
 GOPATH ?= $(shell go env GOPATH)
@@ -8,12 +8,24 @@ Server=cmd/server/server.go
 Client=cmd/client/client.go
 
 print:
-	@echo print
+	@echo print gen_proto vet_server run_server
 
 vet_server: # run go vet
 	@echo Run go vet
-	go vet $(Server)
+	$(GO) vet $(Server)
+
+vet_client: # run go vet
+	@echo Run go vet
+	$(GO) vet $(Client)
 
 run_server: vet_server
 	@echo Run server
 	$(GO) run $(Server)
+
+run_client: vet_client
+	@echo Run client
+	$(GO) run $(Client)
+
+gen_proto:
+	@echo generator protobuf
+	protoc --go_out=plugins=grpc:internal/rpc_service -I protocol message.proto

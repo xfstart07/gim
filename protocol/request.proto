@@ -1,8 +1,0 @@
-syntax="proto3";
-
-package protocol;
-
-message GIMRequest {
-    int64 requestID = 1;
-    string reqMsg = 2;
-}

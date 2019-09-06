@@ -1,0 +1,19 @@
+syntax="proto3";
+
+// 生成到指定包名下
+package rpc_service;
+
+message GIMRequest {
+    int64 requestID = 1;
+    string reqMsg = 2;
+    int32 msgType = 3;
+}
+
+message GIMResponse {
+    int64 responseID = 1;
+    string resMsg = 2;
+}
+
+service GIMService {
+    rpc Channel(stream GIMRequest) returns(stream GIMResponse);
+}

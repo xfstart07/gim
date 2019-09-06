@@ -34,13 +34,13 @@ func (s *httpServer) setRouter() {
 }
 
 func (s *httpServer) Run() {
-	err := s.router.Run(fmt.Sprintf(":%s", GetConfig().ServerPort))
+	err := s.router.Run(fmt.Sprintf(":%s", GetConfig().WebPort))
 	if err != nil {
 		lg.Logger().Error("API 服务启动失败", zap.Error(err))
 	}
 }
 
-// example: curl -X POST --header 'Content-Type: application/json' -d '{"message": "hello"}' http://localhost:8082/sendMsg
+// example: curl -X POST --header 'Content-Type: application/json' -d '{"user_id": 1567750270024892000, "msg": "你好"}' http://localhost:8082/sendMsg
 func sendMsg(ctx *gin.Context) {
 	// TODO: send message，through grpc
 

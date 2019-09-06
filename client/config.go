@@ -12,7 +12,10 @@ import (
 type Config struct {
 	UserID         int64  `ini:"user_id"`
 	Username       string `ini:"username"`
+	WebPort        string `ini:"web_port"`
+	ServerIP       string `ini:"server_ip"`
 	ServerPort     string `ini:"server_port"`
+	ServerRPCPort  string `ini:"server_rpc_port"`
 	LogLevel       string `ini:"log_level"`
 	ReconnectCount int    `ini:"reconnect_count"`
 }
@@ -42,7 +45,10 @@ func defaultConfig() *Config {
 	return &Config{
 		UserID:         1434348343,
 		Username:       "Leon",
-		ServerPort:     "8082",
+		WebPort:        "8082",
+		ServerIP:       "localhost",
+		ServerPort:     "8083",
+		ServerRPCPort:  "11211",
 		LogLevel:       "info",
 		ReconnectCount: 3,
 	}
