@@ -16,6 +16,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// 用户客户端
 type userClient struct {
 	ctx      *context
 	userInfo model.User
@@ -23,6 +24,7 @@ type userClient struct {
 	channel   rpc_service.GIMService_ChannelClient
 	sendCh    chan *rpc_service.GIMRequest
 	receiveCh chan *rpc_service.GIMResponse
+	closeCh   chan struct{}
 }
 
 func newUserClient(ctx *context) (uc *userClient, err error) {
@@ -44,7 +46,10 @@ func newUserClient(ctx *context) (uc *userClient, err error) {
 	}
 
 	uc.ctx.client.waitGroup.Wrap(func() {
-		uc.recvStream()
+		uc.recvChannel()
+	})
+	uc.ctx.client.waitGroup.Wrap(func() {
+		uc.dispatch()
 	})
 
 	return
@@ -67,6 +72,10 @@ func (c *userClient) dispatch() {
 			if err != nil {
 				lg.Logger().Error("心跳发送失败", zap.Error(err))
 			}
+		case <-c.closeCh:
+			// receive user client shutdown signal
+			lg.Logger().Error("用户下线！")
+			return
 		}
 	}
 }
@@ -100,7 +109,7 @@ func (c *userClient) sendChannel(req *rpc_service.GIMRequest) error {
 	return c.channel.Send(req)
 }
 
-func (c *userClient) recvStream() {
+func (c *userClient) recvChannel() {
 	for {
 		res, err := c.channel.Recv()
 		if err != nil {
@@ -108,12 +117,16 @@ func (c *userClient) recvStream() {
 				lg.Logger().Error("无消息可以接收")
 				return
 			}
-
-			// TODO: 连接失败，应该关闭用户客户端
 			lg.Logger().Error("消息接收失败", zap.Error(err))
+
+			c.shutdown()
 			return
 		}
 
 		c.receiveCh <- res
 	}
+}
+
+func (c *userClient) shutdown() {
+	c.closeCh <- struct{}{}
 }

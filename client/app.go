@@ -46,9 +46,6 @@ func (c *AppClient) Main() {
 		panic(err)
 	}
 	c.waitGroup.Wrap(func() {
-		uClient.dispatch()
-	})
-	c.waitGroup.Wrap(func() {
 		uClient.Login()
 	})
 
