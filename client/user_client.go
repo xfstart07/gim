@@ -17,10 +17,10 @@ import (
 )
 
 type userClient struct {
-	ctx       *context
-	rpcClient rpc_service.GIMServiceClient
-	stream    rpc_service.GIMService_ChannelClient
-	user      model.User
+	ctx      *context
+	userInfo model.User
+
+	channel   rpc_service.GIMService_ChannelClient
 	sendCh    chan *rpc_service.GIMRequest
 	receiveCh chan *rpc_service.GIMResponse
 }
@@ -32,13 +32,16 @@ func newUserClient(ctx *context) (uc *userClient, err error) {
 		ctx:       ctx,
 	}
 
-	uc.user = model.User{
+	uc.userInfo = model.User{
 		UserID:   GetConfig().UserID,
 		UserName: GetConfig().Username,
 	}
 
-	uc.rpcClient = rpc_service.NewGIMServiceClient(ctx.client.rpc.conn)
-	uc.stream, err = uc.rpcClient.Channel(context2.Background())
+	uc.channel, err = rpc_service.NewGIMServiceClient(ctx.client.rpc.conn).
+		Channel(context2.Background())
+	if err != nil {
+		return
+	}
 
 	uc.ctx.client.waitGroup.Wrap(func() {
 		uc.recvStream()
@@ -52,7 +55,7 @@ func (c *userClient) dispatch() {
 	for {
 		select {
 		case req := <-c.sendCh:
-			err := c.sendStream(req)
+			err := c.sendChannel(req)
 			if err != nil {
 				lg.Logger().Error("发送消息失败", zap.Error(err), zap.Any("req", req))
 			}
@@ -69,13 +72,13 @@ func (c *userClient) dispatch() {
 }
 
 func (c *userClient) Login() {
-	lg.Logger().Debug("用户: " + c.user.UserName + " 登录中...")
-	c.sendMsg(c.user.UserName, constant.LoginMsg)
+	lg.Logger().Debug("用户: " + c.userInfo.UserName + " 登录中...")
+	c.sendMsg(c.userInfo.UserName, constant.LoginMsg)
 }
 
 func (c *userClient) sendMsg(msg string, msgType int) {
 	req := &rpc_service.GIMRequest{
-		RequestID: c.user.UserID,
+		RequestID: c.userInfo.UserID,
 		ReqMsg:    msg,
 		MsgType:   int32(msgType),
 	}
@@ -83,29 +86,30 @@ func (c *userClient) sendMsg(msg string, msgType int) {
 	c.sendCh <- req
 }
 
-func (c *userClient) sendStream(req *rpc_service.GIMRequest) error {
-	return c.stream.Send(req)
-}
-
 func (c *userClient) sendHeartbeat() error {
 	req := &rpc_service.GIMRequest{
-		RequestID: c.user.UserID,
+		RequestID: c.userInfo.UserID,
 		ReqMsg:    "Ping",
 		MsgType:   constant.PingMsg,
 	}
 
-	return c.sendStream(req)
+	return c.sendChannel(req)
+}
+
+func (c *userClient) sendChannel(req *rpc_service.GIMRequest) error {
+	return c.channel.Send(req)
 }
 
 func (c *userClient) recvStream() {
 	for {
-		res, err := c.stream.Recv()
+		res, err := c.channel.Recv()
 		if err != nil {
 			if err == io.EOF {
 				lg.Logger().Error("无消息可以接收")
 				return
 			}
 
+			// TODO: 连接失败，应该关闭用户客户端
 			lg.Logger().Error("消息接收失败", zap.Error(err))
 			return
 		}

@@ -13,10 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	ContextTypeJSON = "application/json"
-)
-
 type httpServer struct {
 	router *gin.Engine
 }

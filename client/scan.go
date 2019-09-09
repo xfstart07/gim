@@ -5,16 +5,25 @@ package client
 
 import (
 	"fmt"
+	"gim/client/handler"
 	"gim/internal/lg"
-	"gim/model"
-	"strconv"
-	"strings"
 
 	"go.uber.org/zap"
 )
 
-// message format: userID;;message
-func (c *Client) Scan() {
+type scanner struct {
+	ctx            *context
+	messageHandler handler.MessageHandleInterface
+}
+
+func NewScan(ctx *context) *scanner {
+	return &scanner{
+		ctx:            ctx,
+		messageHandler: handler.NewMessageHandler(GetConfig()),
+	}
+}
+
+func (s *scanner) Scan() {
 	for {
 		var msg string
 		lg.Logger().Info("请输入: ")
@@ -25,26 +34,13 @@ func (c *Client) Scan() {
 		}
 		lg.Logger().Debug("用户输入消息: " + msg)
 
-		if strings.Contains(msg, ";;") {
-			msgs := strings.Split(msg, ";;")
-			userID, err := strconv.ParseInt(msgs[0], 10, 64)
-			if err != nil {
-				lg.Logger().Error("用户ID输入错误", zap.Error(err))
-				continue
-			}
+		if !s.messageHandler.CheckMsg(msg) {
+			continue
+		}
 
-			// p2p chat
-			_ = c.sendP2PMsg(model.P2PReq{
-				ReceiverID: userID,
-				UserID:     GetConfig().UserID,
-				Msg:        msgs[1],
-			})
-		} else {
-			// group chat
-			_ = c.sendGroupMsg(model.MsgReq{
-				UserID: GetConfig().UserID,
-				Msg:    msg,
-			})
+		err = s.messageHandler.SendMsg(msg)
+		if err != nil {
+			lg.Logger().Error("消息发送失败", zap.Error(err))
 		}
 	}
 }

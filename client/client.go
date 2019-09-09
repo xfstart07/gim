@@ -52,8 +52,9 @@ func (c *Client) Main() {
 		uClient.Login()
 	})
 
+	scanner := NewScan(ctx)
 	c.waitGroup.Wrap(func() {
-		c.Scan()
+		scanner.Scan()
 	})
 
 	c.waitGroup.Wait()

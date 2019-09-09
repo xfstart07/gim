@@ -5,24 +5,13 @@ package client
 
 import (
 	"flag"
+	"gim/model"
 
 	"github.com/go-ini/ini"
 )
 
-type Config struct {
-	UserID         int64  `ini:"user_id"`
-	Username       string `ini:"username"`
-	WebPort        string `ini:"web_port"`
-	ServerIP       string `ini:"server_ip"`
-	ServerPort     string `ini:"server_port"`
-	ServerRPCPort  string `ini:"server_rpc_port"`
-	LogLevel       string `ini:"log_level"`
-	ReconnectCount int    `ini:"reconnect_count"`
-	HeartbeatTime  int    `ini:"heartbeat_time"`
-}
-
 var (
-	conf         *Config
+	conf         *model.ClientConfig
 	confPath     string
 	confUserID   int64
 	confUserName string
@@ -30,11 +19,11 @@ var (
 
 func init() {
 	flag.StringVar(&confPath, "config", "config/client.ini", "set client config filepath")
-	flag.Int64Var(&confUserID, "user_id", 0, "user id")
-	flag.StringVar(&confUserName, "username", "", "user name")
+	flag.Int64Var(&confUserID, "user_id", 0, "userInfo id")
+	flag.StringVar(&confUserName, "username", "", "userInfo name")
 }
 
-func GetConfig() *Config {
+func GetConfig() *model.ClientConfig {
 	return conf
 }
 
@@ -53,8 +42,8 @@ func InitConfig() error {
 	return nil
 }
 
-func defaultConfig() *Config {
-	return &Config{
+func defaultConfig() *model.ClientConfig {
+	return &model.ClientConfig{
 		UserID:         1434348343,
 		Username:       "Leon",
 		WebPort:        "8082",
