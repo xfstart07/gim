@@ -48,7 +48,7 @@ func newUserClient(ctx *context) (uc *userClient, err error) {
 }
 
 func (c *userClient) dispatch() {
-	heartbeatTime := time.NewTimer(10 * time.Second)
+	heartbeatTime := time.NewTicker(time.Duration(GetConfig().HeartbeatTime) * time.Second)
 	for {
 		select {
 		case req := <-c.sendCh:
@@ -69,7 +69,7 @@ func (c *userClient) dispatch() {
 }
 
 func (c *userClient) Login() {
-	lg.Logger().Debug(c.user.UserName + "登录中...")
+	lg.Logger().Debug("用户: " + c.user.UserName + " 登录中...")
 	c.sendMsg(c.user.UserName, constant.LoginMsg)
 }
 

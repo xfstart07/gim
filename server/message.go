@@ -30,3 +30,20 @@ func (s *Server) sendMsg(msg model.MsgReq) error {
 
 	return nil
 }
+
+func (s *Server) sendP2PMsg(msg model.P2PReq) error {
+	stream := userSessionMap.get(msg.ReceiverID)
+
+	res := &rpc_service.GIMResponse{
+		ResponseID: msg.UserID,
+		ResMsg:     msg.Msg,
+	}
+
+	err := stream.Send(res)
+	if err != nil {
+		lg.Logger().Error("消息发送失败", zap.Error(err))
+		return errMessageSendFailed
+	}
+
+	return nil
+}

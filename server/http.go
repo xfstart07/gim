@@ -34,6 +34,7 @@ func newHTTPServer(ctx *context) *httpServer {
 func (s *httpServer) setRouter() {
 	s.router.POST("/registerAccount", s.registerAccount)
 	s.router.POST("/sendMsg", s.sendMsg)
+	s.router.POST("/sendP2PMsg", s.sendP2PMsg)
 }
 
 func (s *httpServer) Run() {
@@ -74,6 +75,25 @@ func (s *httpServer) sendMsg(ctx *gin.Context) {
 	}
 
 	err = s.ctx.server.sendMsg(msg)
+	if err != nil {
+		http_helper.Render500(ctx, err)
+		return
+	}
+
+	http_helper.RenderOK(ctx, nil)
+}
+
+// sendP2PMsg 用户直接聊天
+// example: curl -X POST --header 'Content-Type: application/json' -d '{"user_id": 1567750270024892000, "msg": "你好", "receiver_id": 1567750270024892000,}' http://localhost:8082/sendP2PMsg
+func (s *httpServer) sendP2PMsg(ctx *gin.Context) {
+	msg := model.P2PReq{}
+	err := ctx.Bind(&msg)
+	if err != nil {
+		http_helper.Render400(ctx, err)
+		return
+	}
+
+	err = s.ctx.server.sendP2PMsg(msg)
 	if err != nil {
 		http_helper.Render500(ctx, err)
 		return
