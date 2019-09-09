@@ -4,5 +4,5 @@
 package client
 
 type context struct {
-	client *Client
+	client *AppClient
 }
