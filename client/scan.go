@@ -14,7 +14,7 @@ import (
 )
 
 // message format: userID;;message
-func (c *Client) ScanMessage() {
+func (c *Client) Scan() {
 	for {
 		var msg string
 		lg.Logger().Info("请输入: ")
@@ -25,14 +25,14 @@ func (c *Client) ScanMessage() {
 		}
 		lg.Logger().Debug("用户输入消息: " + msg)
 
-		msgs := strings.Split(msg, ";;")
-		userID, err := strconv.ParseInt(msgs[0], 10, 64)
-		if err != nil {
-			lg.Logger().Error("用户ID输入错误", zap.Error(err))
-			continue
-		}
+		if strings.Contains(msg, ";;") {
+			msgs := strings.Split(msg, ";;")
+			userID, err := strconv.ParseInt(msgs[0], 10, 64)
+			if err != nil {
+				lg.Logger().Error("用户ID输入错误", zap.Error(err))
+				continue
+			}
 
-		if userID != 0 {
 			// p2p chat
 			_ = c.sendP2PMsg(model.P2PReq{
 				ReceiverID: userID,
@@ -40,7 +40,11 @@ func (c *Client) ScanMessage() {
 				Msg:        msgs[1],
 			})
 		} else {
-			// TODO: group chat
+			// group chat
+			_ = c.sendGroupMsg(model.MsgReq{
+				UserID: GetConfig().UserID,
+				Msg:    msg,
+			})
 		}
 	}
 }

@@ -35,6 +35,13 @@ func (s *userSession) get(userID int64) rpc_service.GIMService_ChannelServer {
 	return stream.(rpc_service.GIMService_ChannelServer)
 }
 
+func (s *userSession) rangStreams(f func(key, value interface{})) {
+	s.streams.Range(func(key, value interface{}) bool {
+		f(key, value)
+		return true
+	})
+}
+
 func (s *userSession) getSession(stream rpc_service.GIMService_ChannelServer) model.User {
 	user := model.User{}
 	s.streams.Range(func(key, value interface{}) bool {

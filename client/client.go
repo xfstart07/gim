@@ -51,8 +51,9 @@ func (c *Client) Main() {
 	c.waitGroup.Wrap(func() {
 		uClient.Login()
 	})
+
 	c.waitGroup.Wrap(func() {
-		c.ScanMessage()
+		c.Scan()
 	})
 
 	c.waitGroup.Wait()

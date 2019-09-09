@@ -35,6 +35,7 @@ func (s *httpServer) setRouter() {
 	s.router.POST("/registerAccount", s.registerAccount)
 	s.router.POST("/sendMsg", s.sendMsg)
 	s.router.POST("/sendP2PMsg", s.sendP2PMsg)
+	s.router.POST("/sendGroupMsg", s.sendGroupMsg)
 }
 
 func (s *httpServer) Run() {
@@ -94,6 +95,23 @@ func (s *httpServer) sendP2PMsg(ctx *gin.Context) {
 	}
 
 	err = s.ctx.server.sendP2PMsg(msg)
+	if err != nil {
+		http_helper.Render500(ctx, err)
+		return
+	}
+
+	http_helper.RenderOK(ctx, nil)
+}
+
+func (s *httpServer) sendGroupMsg(ctx *gin.Context) {
+	msg := model.MsgReq{}
+	err := ctx.Bind(&msg)
+	if err != nil {
+		http_helper.Render400(ctx, err)
+		return
+	}
+
+	err = s.ctx.server.sendGroupMsg(msg)
 	if err != nil {
 		http_helper.Render500(ctx, err)
 		return

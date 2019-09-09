@@ -20,6 +20,7 @@ var (
 	errP2PSendFail = errors.New("私聊消息发送失败")
 )
 
+// 私聊
 func (c *Client) sendP2PMsg(msgReq model.P2PReq) error {
 	url := fmt.Sprintf("http://%s:%s/sendP2PMsg", GetConfig().ServerIP, GetConfig().ServerPort)
 
@@ -27,6 +28,24 @@ func (c *Client) sendP2PMsg(msgReq model.P2PReq) error {
 	resp, err := http.Post(url, ContextTypeJSON, bytes.NewBuffer(msgBody))
 	if err != nil {
 		lg.Logger().Error("私聊消息发送失败", zap.Error(err))
+		return errP2PSendFail
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	lg.Logger().Info("发送结果" + string(respBody))
+
+	return nil
+}
+
+// 群聊
+func (c *Client) sendGroupMsg(msg model.MsgReq) error {
+	url := fmt.Sprintf("http://%s:%s/sendGroupMsg", GetConfig().ServerIP, GetConfig().ServerPort)
+
+	msgBody, _ := json.Marshal(msg)
+	resp, err := http.Post(url, ContextTypeJSON, bytes.NewBuffer(msgBody))
+	if err != nil {
+		lg.Logger().Error("群聊消息发送失败", zap.Error(err))
 		return errP2PSendFail
 	}
 	defer resp.Body.Close()
