@@ -5,9 +5,8 @@ package client
 
 import (
 	"fmt"
+	"gim/internal/http_helper"
 	"gim/internal/lg"
-	"gim/model"
-	"net/http"
 
 	"go.uber.org/zap"
 
@@ -42,11 +41,8 @@ func (s *httpServer) Run() {
 
 // example: curl -X POST --header 'Content-Type: application/json' -d '{"user_id": 1567750270024892000, "msg": "你好"}' http://localhost:8082/sendMsg
 func sendMsg(ctx *gin.Context) {
-	// TODO: send message，through grpc
+	// TODO: send message，to server
 
-	ctx.JSON(http.StatusCreated, model.CodeResult{
-		Code:    "0",
-		Message: "success",
-	})
+	http_helper.RenderCreated(ctx, nil)
 	lg.Logger().Info("成功")
 }

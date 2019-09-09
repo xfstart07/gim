@@ -17,6 +17,12 @@ type channelService struct {
 	ctx *context
 }
 
+func NewChannelService(ctx *context) *channelService {
+	return &channelService{
+		ctx: ctx,
+	}
+}
+
 func (c *channelService) Channel(stream rpc_service.GIMService_ChannelServer) error {
 	for {
 		request, err := stream.Recv()
@@ -39,12 +45,6 @@ func (c *channelService) Channel(stream rpc_service.GIMService_ChannelServer) er
 	}
 
 	return nil
-}
-
-func NewChannelService(ctx *context) *channelService {
-	return &channelService{
-		ctx: ctx,
-	}
 }
 
 func channelHandler(stream rpc_service.GIMService_ChannelServer, req *rpc_service.GIMRequest) *rpc_service.GIMResponse {

@@ -5,9 +5,9 @@ package server
 
 import (
 	"fmt"
+	"gim/internal/http_helper"
 	"gim/internal/lg"
 	"gim/model"
-	"net/http"
 
 	"go.uber.org/zap"
 
@@ -48,22 +48,18 @@ func (s *httpServer) registerAccount(ctx *gin.Context) {
 	user := model.User{}
 	err := ctx.Bind(&user)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, model.ErrResult{Message: err.Error()})
+		http_helper.Render400(ctx, err)
 		return
 	}
 
 	// register account
 	register, err := s.ctx.server.accountRegister(user)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, model.ErrResult{Message: err.Error()})
+		http_helper.Render500(ctx, err)
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, model.CodeResult{
-		Code:    "0",
-		Message: "注册成功",
-		Data:    register,
-	})
+	http_helper.RenderCreated(ctx, register)
 	lg.Logger().Info("注册用户成功", zap.Any("account", register))
 }
 
@@ -73,18 +69,15 @@ func (s *httpServer) sendMsg(ctx *gin.Context) {
 	msg := model.MsgReq{}
 	err := ctx.Bind(&msg)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, model.ErrResult{Message: err.Error()})
+		http_helper.Render400(ctx, err)
 		return
 	}
 
 	err = s.ctx.server.sendMsg(msg)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, model.ErrResult{Message: err.Error()})
+		http_helper.Render500(ctx, err)
 		return
 	}
 
-	ctx.JSON(http.StatusOK, model.CodeResult{
-		Code:    "0",
-		Message: "OK",
-	})
+	http_helper.RenderOK(ctx, nil)
 }
