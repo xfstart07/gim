@@ -1,6 +1,6 @@
 # GIM
 
-IM 系统
+Golang 实现 的 IM 系统。
 
 ## TODO LIST
 
