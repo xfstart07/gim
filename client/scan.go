@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"gim/client/handler"
 	"gim/internal/lg"
-
-	"go.uber.org/zap"
 )
 
 type scanner struct {
@@ -38,9 +36,8 @@ func (s *scanner) Scan() {
 			continue
 		}
 
-		err = s.messageHandler.SendMsg(msg)
-		if err != nil {
-			lg.Logger().Error("消息发送失败", zap.Error(err))
-		}
+		s.messageHandler.SendMsg(msg)
+
+		lg.Logger().Info(fmt.Sprintf("%s: 【%s】", GetConfig().Username, msg))
 	}
 }

@@ -24,7 +24,7 @@ var (
 
 type MessageHandleInterface interface {
 	CheckMsg(string) bool
-	SendMsg(string) error
+	SendMsg(string)
 }
 
 type messageHandler struct {
@@ -45,23 +45,29 @@ func (h *messageHandler) CheckMsg(msg string) bool {
 	return true
 }
 
-func (h *messageHandler) SendMsg(msg string) error {
+func (h *messageHandler) SendMsg(msg string) {
+	var err error
+
 	msgStrings := strings.Split(msg, ";;")
 	if len(msgStrings) > 1 {
 		userID, _ := strconv.ParseInt(msgStrings[0], 10, 64)
 
 		// p2p chat
-		return h.sendP2PMsg(model.P2PReq{
+		err = h.sendP2PMsg(model.P2PReq{
 			ReceiverID: userID,
 			UserID:     h.config.UserID,
 			Msg:        msgStrings[1],
 		})
 	} else {
 		// group chat
-		return h.sendGroupMsg(model.MsgReq{
+		err = h.sendGroupMsg(model.MsgReq{
 			UserID: h.config.UserID,
 			Msg:    msg,
 		})
+	}
+
+	if err != nil {
+		lg.Logger().Error(err.Error())
 	}
 }
 
@@ -69,6 +75,8 @@ func (h *messageHandler) sendP2PMsg(req model.P2PReq) error {
 	url := fmt.Sprintf("http://%s:%s/sendP2PMsg", h.config.ServerIP, h.config.ServerPort)
 
 	msgBody, _ := json.Marshal(req)
+	lg.Logger().Debug(fmt.Sprintf("post = %s, %s", url, string(msgBody)))
+
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(msgBody))
 	if err != nil {
 		lg.Logger().Error("私聊消息发送失败", zap.Error(err))
@@ -86,6 +94,8 @@ func (h *messageHandler) sendGroupMsg(req model.MsgReq) error {
 	url := fmt.Sprintf("http://%s:%s/sendGroupMsg", h.config.ServerIP, h.config.ServerPort)
 
 	msgBody, _ := json.Marshal(req)
+	lg.Logger().Debug(fmt.Sprintf("post = %s, %s", url, string(msgBody)))
+
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(msgBody))
 	if err != nil {
 		lg.Logger().Error("群聊消息发送失败", zap.Error(err))
