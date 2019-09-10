@@ -32,7 +32,15 @@ func (s *userSession) removeSession(userID int64) {
 	s.sessions.Delete(userID)
 }
 
-func (s *userSession) getSession(stream rpc_service.GIMService_ChannelServer) model.User {
+func (s *userSession) getSessionByUserID(userID int64) model.User {
+	name, _ := s.sessions.Load(userID)
+	return model.User{
+		UserID:   userID,
+		UserName: name.(string),
+	}
+}
+
+func (s *userSession) getSessionByStream(stream rpc_service.GIMService_ChannelServer) model.User {
 	user := model.User{}
 	s.rangStreams(func(key, value interface{}) {
 		if stream == value.(rpc_service.GIMService_ChannelServer) {

@@ -5,6 +5,7 @@ package server
 
 import (
 	"fmt"
+	"gim/internal/constant"
 	"gim/internal/lg"
 	"gim/internal/rpc_service"
 	"gim/model"
@@ -18,15 +19,26 @@ var errMessageSendFailed = errors.New("message send failed")
 func (s *Server) sendMsg(msg model.MsgReq) error {
 	stream := userSessionMap.get(msg.UserID)
 
+	return s.pushMsg(stream, model.PushMsg{
+		UserID:  msg.UserID,
+		MsgType: constant.ChatMsg,
+		Msg:     msg.Msg,
+	})
+}
+
+func (s *Server) pushMsg(stream rpc_service.GIMService_ChannelServer, msg model.PushMsg) error {
+	user := userSessionMap.getSessionByUserID(msg.UserID)
+
 	res := &rpc_service.GIMResponse{
 		ResponseID: msg.UserID,
-		ResMsg:     msg.Msg,
+		ResMsg:     fmt.Sprintf("%s: 【%s】", user.UserName, msg.Msg),
+		MsgType:    msg.MsgType,
 	}
 
 	err := stream.Send(res)
 	if err != nil {
 		lg.Logger().Error("消息发送失败", zap.Error(err))
-		return errMessageSendFailed
+		return err
 	}
 
 	return nil
@@ -35,18 +47,11 @@ func (s *Server) sendMsg(msg model.MsgReq) error {
 func (s *Server) sendP2PMsg(msg model.P2PReq) error {
 	stream := userSessionMap.get(msg.ReceiverID)
 
-	res := &rpc_service.GIMResponse{
-		ResponseID: msg.UserID,
-		ResMsg:     msg.Msg,
-	}
-
-	err := stream.Send(res)
-	if err != nil {
-		lg.Logger().Error("消息发送失败", zap.Error(err))
-		return errMessageSendFailed
-	}
-
-	return nil
+	return s.pushMsg(stream, model.PushMsg{
+		UserID:  msg.UserID,
+		Msg:     msg.Msg,
+		MsgType: constant.ChatMsg,
+	})
 }
 
 func (s *Server) sendGroupMsg(msg model.MsgReq) error {
@@ -60,15 +65,13 @@ func (s *Server) sendGroupMsg(msg model.MsgReq) error {
 		}
 
 		stream := value.(rpc_service.GIMService_ChannelServer)
-		res := &rpc_service.GIMResponse{
-			ResponseID: msg.UserID,
-			ResMsg:     msg.Msg,
-		}
-
-		err := stream.Send(res)
+		err := s.pushMsg(stream, model.PushMsg{
+			UserID:  msg.UserID,
+			Msg:     msg.Msg,
+			MsgType: constant.ChatMsg,
+		})
 		if err != nil {
-			lg.Logger().Error("消息发送失败", zap.Error(err))
-			errs = errors.Wrap(err, fmt.Sprintf("%d 消息发送失败", userID))
+			errs = errors.Wrap(err, fmt.Sprintf("%d 消息发送失败", msg.UserID))
 		}
 	})
 

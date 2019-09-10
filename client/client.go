@@ -5,7 +5,6 @@ package client
 
 import (
 	context2 "context"
-	"fmt"
 	"gim/internal/constant"
 	"gim/internal/lg"
 	"gim/internal/rpc_service"
@@ -23,6 +22,8 @@ type userClient struct {
 	userInfo model.User
 	errCount int
 
+	msgLog MsgLogger
+
 	channel   rpc_service.GIMService_ChannelClient
 	sendCh    chan *rpc_service.GIMRequest
 	receiveCh chan *rpc_service.GIMResponse
@@ -35,6 +36,7 @@ func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient, err e
 		receiveCh: make(chan *rpc_service.GIMResponse),
 		ctx:       ctx,
 		config:    cfg,
+		msgLog:    NewWriter(ctx, cfg),
 	}
 
 	uc.userInfo = model.User{
@@ -68,8 +70,7 @@ func (c *userClient) dispatch() {
 				lg.Logger().Error("发送消息失败", zap.Error(err), zap.Any("req", req))
 			}
 		case res := <-c.receiveCh:
-			// TODO: writer log
-			lg.Logger().Info(fmt.Sprintf("接收到的消息: [%d]: %s", res.ResponseID, res.ResMsg))
+			c.writerMsg(res.ResponseID, res.ResMsg, res.MsgType)
 		case <-heartbeatTime.C:
 			err := c.sendHeartbeat()
 			if err != nil {
@@ -137,4 +138,13 @@ func (c *userClient) recvChannel() {
 
 func (c *userClient) shutdown() {
 	c.closeCh <- struct{}{}
+}
+
+func (c *userClient) writerMsg(userID int64, msg string, msgType int32) {
+	lg.Logger().Info(msg)
+
+	// asyncWriter log
+	if msgType == constant.ChatMsg {
+		c.msgLog.Log(msg)
+	}
 }

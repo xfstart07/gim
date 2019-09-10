@@ -12,6 +12,7 @@ message GIMRequest {
 message GIMResponse {
     int64 responseID = 1;
     string resMsg = 2;
+    int32 msgType = 3;
 }
 
 service GIMService {

@@ -13,6 +13,7 @@ type ClientConfig struct {
 	LogLevel       string `ini:"log_level"`
 	ReconnectCount int    `ini:"reconnect_count"`
 	HeartbeatTime  int    `ini:"heartbeat_time"`
+	MsgLogPath     string `ini:"msg_log_path"`
 }
 
 type ServerConfig struct {

@@ -32,7 +32,7 @@ func (c *channelService) Channel(stream rpc_service.GIMService_ChannelServer) er
 			}
 
 			// 连接异常，用户下线
-			user := userSessionMap.getSession(stream)
+			user := userSessionMap.getSessionByStream(stream)
 			c.ctx.server.userOffline(user)
 
 			lg.Logger().Info("连接异常", zap.Error(err))
@@ -58,6 +58,7 @@ func channelHandler(stream rpc_service.GIMService_ChannelServer, req *rpc_servic
 
 	res := &rpc_service.GIMResponse{
 		ResponseID: req.RequestID,
+		MsgType:    req.MsgType,
 	}
 
 	if req.MsgType == constant.LoginMsg {
@@ -72,7 +73,7 @@ func channelHandler(stream rpc_service.GIMService_ChannelServer, req *rpc_servic
 	}
 
 	if req.MsgType == constant.PingMsg {
-		res.ResMsg = "Pong"
+		res.ResMsg = "心跳信息: Pong"
 
 		// 心跳消息处理
 		lg.Logger().Info("心跳信息: " + req.ReqMsg)
