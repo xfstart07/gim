@@ -28,4 +28,4 @@ run_client: vet_client
 
 gen_proto:
 	@echo generator protobuf
-	protoc --go_out=plugins=grpc:internal/rpc_service -I protocol message.proto
+	protoc --go_out=plugins=grpc:pkg/rpc_service -I protocol message.proto
