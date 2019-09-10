@@ -19,7 +19,9 @@ import (
 // 用户客户端
 type userClient struct {
 	ctx      *context
+	config   *model.ClientConfig
 	userInfo model.User
+	errCount int
 
 	channel   rpc_service.GIMService_ChannelClient
 	sendCh    chan *rpc_service.GIMRequest
@@ -27,11 +29,12 @@ type userClient struct {
 	closeCh   chan struct{}
 }
 
-func newUserClient(ctx *context) (uc *userClient, err error) {
+func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient, err error) {
 	uc = &userClient{
 		sendCh:    make(chan *rpc_service.GIMRequest),
 		receiveCh: make(chan *rpc_service.GIMResponse),
 		ctx:       ctx,
+		config:    cfg,
 	}
 
 	uc.userInfo = model.User{
@@ -70,7 +73,12 @@ func (c *userClient) dispatch() {
 		case <-heartbeatTime.C:
 			err := c.sendHeartbeat()
 			if err != nil {
-				lg.Logger().Error("心跳发送失败", zap.Error(err))
+				lg.Logger().Error("心跳发送失败, 服务端无法连接", zap.Error(err))
+				// reconnect
+				c.errCount++
+				if c.errCount >= c.config.ReconnectCount {
+					return
+				}
 			}
 		case <-c.closeCh:
 			// receive user client shutdown signal
@@ -113,13 +121,13 @@ func (c *userClient) recvChannel() {
 	for {
 		res, err := c.channel.Recv()
 		if err != nil {
+			c.shutdown()
+
 			if err == io.EOF {
-				lg.Logger().Error("无消息可以接收")
 				return
 			}
-			lg.Logger().Error("消息接收失败", zap.Error(err))
 
-			c.shutdown()
+			lg.Logger().Error("消息接收失败", zap.Error(err))
 			return
 		}
 

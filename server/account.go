@@ -4,6 +4,7 @@
 package server
 
 import (
+	"gim/internal/lg"
 	"gim/model"
 	"gim/server/service"
 	"time"
@@ -15,6 +16,10 @@ func (s *Server) accountRegister(user model.User) (model.User, error) {
 
 	// TODO: 生成用户 ID，目前使用 时间戳，但是当用户同时注册时，可能会有冲突，生成出相同值
 	user.UserID = time.Now().UnixNano()
-
 	return srv.Register(user)
+}
+
+func (s *Server) userOffline(user model.User) {
+	userSessionMap.remove(user.UserID)
+	lg.Logger().Info(user.UserName + "下线成功!")
 }

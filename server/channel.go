@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// 消息处理
+// rpc 注册，消息处理
 type channelService struct {
 	ctx *context
 }
@@ -31,8 +31,11 @@ func (c *channelService) Channel(stream rpc_service.GIMService_ChannelServer) er
 				break
 			}
 
-			// TODO: 连接异常，用户下线
-			lg.Logger().Error("连接异常", zap.Error(err))
+			// 连接异常，用户下线
+			user := userSessionMap.getSession(stream)
+			c.ctx.server.userOffline(user)
+
+			lg.Logger().Info("连接异常", zap.Error(err))
 			return err
 		}
 

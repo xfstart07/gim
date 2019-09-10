@@ -41,7 +41,7 @@ func (s *httpServer) setRouter() {
 func (s *httpServer) Run() {
 	err := s.router.Run(fmt.Sprintf(":%s", GetConfig().ServerPort))
 	if err != nil {
-		lg.Logger().Error("API 服务启动失败", zap.Error(err))
+		lg.Logger().Fatal(err.Error())
 	}
 }
 
@@ -84,7 +84,7 @@ func (s *httpServer) sendMsg(ctx *gin.Context) {
 	http_helper.RenderOK(ctx, nil)
 }
 
-// sendP2PMsg 用户直接聊天
+// sendP2PMsg 用户私聊
 // example: curl -X POST --header 'Content-Type: application/json' -d '{"user_id": 1567750270024892000, "msg": "你好", "receiver_id": 1567750270024892000,}' http://localhost:8082/sendP2PMsg
 func (s *httpServer) sendP2PMsg(ctx *gin.Context) {
 	msg := model.P2PReq{}
@@ -103,6 +103,8 @@ func (s *httpServer) sendP2PMsg(ctx *gin.Context) {
 	http_helper.RenderOK(ctx, nil)
 }
 
+// sendGroupMsg 用户群聊
+// example: curl -X POST --header 'Content-Type: application/json' -d '{"user_id": 1567750270024892000, "msg": "你好"}' http://localhost:8082/sendGroupMsg
 func (s *httpServer) sendGroupMsg(ctx *gin.Context) {
 	msg := model.MsgReq{}
 	err := ctx.Bind(&msg)

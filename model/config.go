@@ -14,3 +14,13 @@ type ClientConfig struct {
 	ReconnectCount int    `ini:"reconnect_count"`
 	HeartbeatTime  int    `ini:"heartbeat_time"`
 }
+
+type ServerConfig struct {
+	ServerPort string `ini:"server_port"`
+	RpcPort    string `ini:"rpc_port"`
+	LogLevel   string `ini:"log_level"`
+	Heartbeat  int    `ini:"heartbeat"`
+	RedisURL   string `ini:"redis_url"`
+	RedisPass  string `ini:"redis_pass"`
+	RedisDB    int    `ini:"redis_db"`
+}

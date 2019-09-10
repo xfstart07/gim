@@ -5,22 +5,13 @@ package server
 
 import (
 	"flag"
+	"gim/model"
 
 	"github.com/go-ini/ini"
 )
 
-type Config struct {
-	ServerPort string `ini:"server_port"`
-	RpcPort    string `ini:"rpc_port"`
-	LogLevel   string `ini:"log_level"`
-	Heartbeat  int    `ini:"heartbeat"`
-	RedisURL   string `ini:"redis_url"`
-	RedisPass  string `ini:"redis_pass"`
-	RedisDB    int    `ini:"redis_db"`
-}
-
 var (
-	conf     *Config
+	conf     *model.ServerConfig
 	confPath string
 )
 
@@ -28,7 +19,7 @@ func init() {
 	flag.StringVar(&confPath, "config", "config/server.ini", "set server config filepath")
 }
 
-func GetConfig() *Config {
+func GetConfig() *model.ServerConfig {
 	return conf
 }
 
@@ -40,8 +31,8 @@ func InitConfig() error {
 	return nil
 }
 
-func defaultConfig() *Config {
-	return &Config{
+func defaultConfig() *model.ServerConfig {
+	return &model.ServerConfig{
 		ServerPort: "8081",
 		RpcPort:    "11211",
 		LogLevel:   "info",

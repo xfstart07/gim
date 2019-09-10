@@ -41,7 +41,7 @@ func (c *AppClient) Main() {
 	}
 	c.rpc = newRpcServer(conn)
 
-	uClient, err := newUserClient(ctx)
+	uClient, err := newUserClient(ctx, GetConfig())
 	if err != nil {
 		panic(err)
 	}
