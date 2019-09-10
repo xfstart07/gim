@@ -27,7 +27,7 @@ Golang 实现 的 IM 系统。
 生成 GRPC 接口描述文件
 
 ```bash
-protoc --go_out=plugins=grpc:internal/rpc_service -I protocol message.proto
+protoc --go_out=plugins=grpc:pkg/rpc_service -I protocol message.proto
 ```
 
 ## 消息

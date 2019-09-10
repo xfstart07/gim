@@ -4,8 +4,8 @@
 package server
 
 import (
-	"gim/internal/rpc_service"
 	"gim/model"
+	"gim/pkg/rpc_service"
 	"sync"
 )
 

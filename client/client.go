@@ -7,8 +7,8 @@ import (
 	context2 "context"
 	"gim/internal/constant"
 	"gim/internal/lg"
-	"gim/internal/rpc_service"
 	"gim/model"
+	"gim/pkg/rpc_service"
 	"io"
 	"time"
 

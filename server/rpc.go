@@ -5,7 +5,7 @@ package server
 
 import (
 	"gim/internal/lg"
-	"gim/internal/rpc_service"
+	"gim/pkg/rpc_service"
 	"net"
 
 	"google.golang.org/grpc"

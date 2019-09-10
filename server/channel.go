@@ -6,7 +6,7 @@ package server
 import (
 	"gim/internal/constant"
 	"gim/internal/lg"
-	"gim/internal/rpc_service"
+	"gim/pkg/rpc_service"
 	"io"
 
 	"go.uber.org/zap"
