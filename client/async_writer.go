@@ -81,5 +81,5 @@ func (w *asyncWriter) writeMsg(msg string) {
 	}
 	defer file.Close()
 
-	_, _ = file.WriteString(msg + "\n")
+	fmt.Fprintln(file, msg)
 }
