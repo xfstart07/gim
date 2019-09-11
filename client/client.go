@@ -27,16 +27,17 @@ type userClient struct {
 	channel   rpc_service.GIMService_ChannelClient
 	sendCh    chan *rpc_service.GIMRequest
 	receiveCh chan *rpc_service.GIMResponse
-	closeCh   chan struct{}
+	closeCh   chan int
 }
 
 func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient, err error) {
 	uc = &userClient{
-		sendCh:    make(chan *rpc_service.GIMRequest),
-		receiveCh: make(chan *rpc_service.GIMResponse),
 		ctx:       ctx,
 		config:    cfg,
 		msgLog:    NewWriter(ctx, cfg),
+		sendCh:    make(chan *rpc_service.GIMRequest),
+		receiveCh: make(chan *rpc_service.GIMResponse),
+		closeCh:   make(chan int),
 	}
 
 	uc.userInfo = model.User{
@@ -44,14 +45,13 @@ func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient, err e
 		UserName: GetConfig().Username,
 	}
 
-	uc.channel, err = rpc_service.NewGIMServiceClient(ctx.client.rpc.conn).
-		Channel(context2.Background())
+	uc.channel, err = rpc_service.NewGIMServiceClient(ctx.client.rpc.conn).Channel(context2.Background())
 	if err != nil {
 		return
 	}
 
 	uc.ctx.client.waitGroup.Wrap(func() {
-		uc.recvChannel()
+		uc.recvPump()
 	})
 	uc.ctx.client.waitGroup.Wrap(func() {
 		uc.dispatch()
@@ -83,7 +83,7 @@ func (c *userClient) dispatch() {
 			}
 		case <-c.closeCh:
 			// receive user client shutdown signal
-			lg.Logger().Error("用户下线！")
+			lg.Logger().Info("用户下线！")
 			return
 		}
 	}
@@ -118,16 +118,15 @@ func (c *userClient) sendChannel(req *rpc_service.GIMRequest) error {
 	return c.channel.Send(req)
 }
 
-func (c *userClient) recvChannel() {
+func (c *userClient) recvPump() {
 	for {
 		res, err := c.channel.Recv()
 		if err != nil {
-			c.shutdown()
-
 			if err == io.EOF {
 				return
 			}
 
+			c.shutdown()
 			lg.Logger().Error("消息接收失败", zap.Error(err))
 			return
 		}
@@ -137,7 +136,7 @@ func (c *userClient) recvChannel() {
 }
 
 func (c *userClient) shutdown() {
-	c.closeCh <- struct{}{}
+	close(c.closeCh)
 }
 
 func (c *userClient) writerMsg(userID int64, msg string, msgType int32) {
