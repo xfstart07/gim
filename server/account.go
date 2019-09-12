@@ -4,7 +4,6 @@
 package server
 
 import (
-	"gim/internal/lg"
 	"gim/model"
 	"gim/server/service"
 	"time"
@@ -20,6 +19,6 @@ func (s *Server) accountRegister(user model.User) (model.User, error) {
 }
 
 func (s *Server) userOffline(user model.User) {
+	userSessionMap.removeSession(user.UserID)
 	userSessionMap.remove(user.UserID)
-	lg.Logger().Info(user.UserName + "下线成功!")
 }

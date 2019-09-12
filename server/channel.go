@@ -30,12 +30,13 @@ func (c *channelService) Channel(stream rpc_service.GIMService_ChannelServer) er
 			if err == io.EOF {
 				break
 			}
+			lg.Logger().Info("连接异常", zap.Error(err))
 
 			// 连接异常，用户下线
 			user := userSessionMap.getSessionByStream(stream)
 			c.ctx.server.userOffline(user)
+			lg.Logger().Info(user.UserName + "下线成功!")
 
-			lg.Logger().Info("连接异常", zap.Error(err))
 			return err
 		}
 

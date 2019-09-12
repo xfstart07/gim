@@ -49,7 +49,6 @@ func defaultConfig() *model.ClientConfig {
 		WebPort:        "8082",
 		ServerIP:       "localhost",
 		ServerPort:     "8083",
-		ServerRPCPort:  "11211",
 		LogLevel:       "info",
 		ReconnectCount: 3,
 		HeartbeatTime:  60,

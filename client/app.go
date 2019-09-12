@@ -7,6 +7,11 @@ import (
 	"fmt"
 	"gim/internal/lg"
 	"gim/internal/util"
+	"gim/pkg/etcdkit"
+
+	"google.golang.org/grpc/balancer/roundrobin"
+
+	"google.golang.org/grpc/resolver"
 
 	"google.golang.org/grpc"
 )
@@ -35,7 +40,12 @@ func (c *AppClient) Main() {
 		server.Run()
 	})
 
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%s", GetConfig().ServerIP, GetConfig().ServerRPCPort), grpc.WithInsecure())
+	// 服务发现注册
+	etcdResolver := etcdkit.NewResolver(GetConfig().EtcdUrl, GetConfig().EtcdServerName)
+	resolver.Register(etcdResolver)
+
+	rpcDiaUrl := fmt.Sprintf("%s://authority/%s", etcdResolver.Scheme(), GetConfig().EtcdServerName)
+	conn, err := grpc.Dial(rpcDiaUrl, grpc.WithBalancerName(roundrobin.Name), grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}

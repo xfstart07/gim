@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"gim/internal/lg"
 	"gim/internal/util"
+	"gim/pkg/etcdkit"
 	"net"
 
 	"github.com/go-redis/redis"
@@ -38,16 +39,25 @@ func (s *Server) Main() {
 		server.Run()
 	})
 
-	rpcSrv := NewRpcServer(ctx)
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", GetConfig().RpcPort))
 	if err != nil {
 		panic(err)
 	}
+	err = etcdkit.Register(GetConfig().EtcdUrl, GetConfig().EtcdServerName, "localhost", GetConfig().RpcPort, 10000)
+	if err != nil {
+		panic(err)
+	}
+
+	rpcSrv := NewRpcServer(ctx)
 	s.waitGroup.Wrap(func() {
 		rpcSrv.Run(listener)
 	})
 
 	s.waitGroup.Wait()
+
+	// 退出服务发现系统
+	etcdkit.UnRegister()
+
 	lg.Logger().Info("Client: done!")
 }
 
