@@ -9,6 +9,7 @@ import (
 	"sync"
 )
 
+// TODO 需要存储 redis ，使所有 server 都能读取
 var userSessionMap = newUserSession()
 
 type userSession struct {

@@ -33,6 +33,7 @@ func InitConfig() error {
 
 func defaultConfig() *model.ServerConfig {
 	return &model.ServerConfig{
+		WebEnable:  true,
 		ServerPort: "8081",
 		RpcPort:    "11211",
 		LogLevel:   "info",

@@ -34,10 +34,13 @@ func (s *Server) Main() {
 	s.initRedis()
 
 	ctx := &context{s}
-	server := newHTTPServer(ctx)
-	s.waitGroup.Wrap(func() {
-		server.Run()
-	})
+
+	if GetConfig().WebEnable {
+		server := newHTTPServer(ctx)
+		s.waitGroup.Wrap(func() {
+			server.Run()
+		})
+	}
 
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", GetConfig().RpcPort))
 	if err != nil {

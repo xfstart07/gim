@@ -21,6 +21,7 @@ type ClientConfig struct {
 }
 
 type ServerConfig struct {
+	WebEnable  bool   `ini:"web_enable"`
 	ServerPort string `ini:"server_port"`
 	RpcPort    string `ini:"rpc_port"`
 	Heartbeat  int    `ini:"heartbeat"`

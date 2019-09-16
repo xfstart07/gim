@@ -4,21 +4,16 @@
 package client
 
 import (
-	"fmt"
 	"gim/internal/lg"
 	"gim/internal/util"
 	"gim/pkg/etcdkit"
 
-	"google.golang.org/grpc/balancer/roundrobin"
-
 	"google.golang.org/grpc/resolver"
-
-	"google.golang.org/grpc"
 )
 
 type AppClient struct {
-	rpc       *rpcServer
-	waitGroup util.WaitGroupWrapper
+	etcdResolver resolver.Builder
+	waitGroup    util.WaitGroupWrapper
 }
 
 func New() *AppClient {
@@ -41,23 +36,14 @@ func (c *AppClient) Main() {
 	})
 
 	// 服务发现注册
-	etcdResolver := etcdkit.NewResolver(GetConfig().EtcdUrl, GetConfig().EtcdServerName)
-	resolver.Register(etcdResolver)
+	c.etcdResolver = etcdkit.NewResolver(GetConfig().EtcdUrl, GetConfig().EtcdServerName)
+	resolver.Register(c.etcdResolver)
 
-	rpcDiaUrl := fmt.Sprintf("%s://authority/%s", etcdResolver.Scheme(), GetConfig().EtcdServerName)
-	conn, err := grpc.Dial(rpcDiaUrl, grpc.WithBalancerName(roundrobin.Name), grpc.WithInsecure())
-	if err != nil {
+	uClient := newUserClient(ctx, GetConfig())
+
+	if err := uClient.Start(); err != nil {
 		panic(err)
 	}
-	c.rpc = newRpcServer(conn)
-
-	uClient, err := newUserClient(ctx, GetConfig())
-	if err != nil {
-		panic(err)
-	}
-	c.waitGroup.Wrap(func() {
-		uClient.Login()
-	})
 
 	scanner := NewScan(ctx)
 	c.waitGroup.Wrap(func() {

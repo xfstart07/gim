@@ -5,12 +5,16 @@ package client
 
 import (
 	context2 "context"
+	"fmt"
 	"gim/internal/constant"
 	"gim/internal/lg"
 	"gim/model"
 	"gim/pkg/rpc_service"
 	"io"
 	"time"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/balancer/roundrobin"
 
 	"go.uber.org/zap"
 )
@@ -24,40 +28,66 @@ type userClient struct {
 
 	msgLog MsgLogger
 
+	rpc       *rpcServer
 	channel   rpc_service.GIMService_ChannelClient
 	sendCh    chan *rpc_service.GIMRequest
 	receiveCh chan *rpc_service.GIMResponse
 	closeCh   chan int
 }
 
-func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient, err error) {
+func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient) {
 	uc = &userClient{
-		ctx:       ctx,
-		config:    cfg,
-		msgLog:    NewWriter(ctx, cfg),
-		sendCh:    make(chan *rpc_service.GIMRequest),
-		receiveCh: make(chan *rpc_service.GIMResponse),
-		closeCh:   make(chan int),
+		ctx:    ctx,
+		config: cfg,
+		msgLog: NewWriter(ctx, cfg),
+		userInfo: model.User{
+			UserID:   GetConfig().UserID,
+			UserName: GetConfig().Username,
+		},
 	}
 
-	uc.userInfo = model.User{
-		UserID:   GetConfig().UserID,
-		UserName: GetConfig().Username,
-	}
+	return
+}
 
-	uc.channel, err = rpc_service.NewGIMServiceClient(ctx.client.rpc.conn).Channel(context2.Background())
+func (c *userClient) Start() (err error) {
+	c.reset()
+
+	rpcDiaUrl := fmt.Sprintf("%s://authority/%s", c.ctx.client.etcdResolver.Scheme(), c.config.EtcdServerName)
+	conn, err := grpc.Dial(rpcDiaUrl, grpc.WithBalancerName(roundrobin.Name), grpc.WithInsecure())
+	if err != nil {
+		panic(err)
+	}
+	c.rpc = newRpcServer(conn)
+
+	c.channel, err = rpc_service.NewGIMServiceClient(c.rpc.conn).Channel(context2.Background())
 	if err != nil {
 		return
 	}
 
-	uc.ctx.client.waitGroup.Wrap(func() {
-		uc.recvPump()
+	c.ctx.client.waitGroup.Wrap(func() {
+		c.recvPump()
 	})
-	uc.ctx.client.waitGroup.Wrap(func() {
-		uc.dispatch()
+	c.ctx.client.waitGroup.Wrap(func() {
+		c.dispatch()
 	})
 
-	return
+	c.ctx.client.waitGroup.Wrap(func() {
+		c.Login()
+	})
+
+	return nil
+}
+
+func (c *userClient) reset() {
+	c.sendCh = make(chan *rpc_service.GIMRequest)
+	c.receiveCh = make(chan *rpc_service.GIMResponse)
+	c.closeCh = make(chan int)
+}
+
+func (c *userClient) reconnect() error {
+	c.errCount++
+
+	return c.Start()
 }
 
 func (c *userClient) dispatch() {
@@ -75,18 +105,40 @@ func (c *userClient) dispatch() {
 			err := c.sendHeartbeat()
 			if err != nil {
 				lg.Logger().Error("心跳发送失败, 服务端无法连接", zap.Error(err))
+
 				// reconnect
-				c.errCount++
-				if c.errCount >= c.config.ReconnectCount {
+				for c.errCount < c.config.ReconnectCount {
+					if err := c.reconnect(); err != nil {
+						lg.Logger().Error("用户重连失败", zap.Error(err))
+					} else {
+						lg.Logger().Info("用户重连成功")
+						return
+					}
+				}
+
+				return
+			}
+		case <-c.closeCh:
+			for c.errCount < c.config.ReconnectCount {
+				if err := c.reconnect(); err != nil {
+					lg.Logger().Error("用户重连失败", zap.Error(err))
+				} else {
+					lg.Logger().Info("用户重连成功")
 					return
 				}
 			}
-		case <-c.closeCh:
+
 			// receive user client shutdown signal
 			lg.Logger().Info("用户下线！")
 			return
 		}
 	}
+}
+
+func (c *userClient) shutdown() {
+	defer c.rpc.conn.Close()
+
+	close(c.closeCh)
 }
 
 func (c *userClient) Login() {
@@ -133,10 +185,6 @@ func (c *userClient) recvPump() {
 
 		c.receiveCh <- res
 	}
-}
-
-func (c *userClient) shutdown() {
-	close(c.closeCh)
 }
 
 func (c *userClient) writerMsg(userID int64, msg string, msgType int32) {

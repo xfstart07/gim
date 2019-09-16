@@ -6,6 +6,7 @@ package etcdkit
 import (
 	"context"
 	"fmt"
+	"gim/internal/lg"
 	"strings"
 
 	"github.com/coreos/etcd/clientv3"
@@ -60,6 +61,8 @@ func (r *Resolver) Build(target resolver.Target, cc resolver.ClientConn, opts re
 }
 
 func (r *Resolver) watch(prefix string) {
+	lg.Logger().Info("etcd resolver watch...")
+
 	addrDict := make(map[string]resolver.Address)
 
 	// 更新新发现的地址
@@ -91,6 +94,7 @@ func (r *Resolver) watch(prefix string) {
 			case mvccpb.PUT:
 				addrDict[string(ev.Kv.Key)] = resolver.Address{Addr: string(ev.Kv.Value)}
 			case mvccpb.DELETE:
+				lg.Logger().Info("Delete:=" + string(ev.PrevKv.Key))
 				delete(addrDict, string(ev.PrevKv.Key))
 			}
 		}
