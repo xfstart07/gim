@@ -8,6 +8,7 @@ import (
 	"gim/internal/lg"
 	"gim/internal/util"
 	"gim/pkg/etcdkit"
+	"gim/server/service"
 	"net"
 
 	"github.com/go-redis/redis"
@@ -15,7 +16,9 @@ import (
 
 type Server struct {
 	redisClient *redis.Client
-	waitGroup   util.WaitGroupWrapper
+	userCache   service.UserCache
+
+	waitGroup util.WaitGroupWrapper
 }
 
 func New() *Server {
@@ -32,6 +35,10 @@ func (s *Server) Main() {
 
 	// set external service, redis
 	s.initRedis()
+	s.userCache = service.NewUserCache(s.redisClient)
+
+	// initial user global sessions Map
+	userSessionMap = newUserSession(s.redisClient)
 
 	ctx := &context{s}
 

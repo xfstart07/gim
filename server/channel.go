@@ -4,10 +4,13 @@
 package server
 
 import (
+	"fmt"
 	"gim/internal/constant"
 	"gim/internal/lg"
+	"gim/model"
 	"gim/pkg/rpc_service"
 	"io"
+	"strconv"
 
 	"go.uber.org/zap"
 )
@@ -40,7 +43,7 @@ func (c *channelService) Channel(stream rpc_service.GIMService_ChannelServer) er
 			return err
 		}
 
-		res := channelHandler(stream, request)
+		res := c.channelHandler(stream, request)
 
 		err = stream.Send(res)
 		if err != nil {
@@ -51,7 +54,7 @@ func (c *channelService) Channel(stream rpc_service.GIMService_ChannelServer) er
 	return nil
 }
 
-func channelHandler(stream rpc_service.GIMService_ChannelServer, req *rpc_service.GIMRequest) *rpc_service.GIMResponse {
+func (c *channelService) channelHandler(stream rpc_service.GIMService_ChannelServer, req *rpc_service.GIMRequest) *rpc_service.GIMResponse {
 	if req == nil {
 		lg.Logger().Info("无消息", zap.Any("req", req))
 		return nil
@@ -69,6 +72,16 @@ func channelHandler(stream rpc_service.GIMService_ChannelServer, req *rpc_servic
 		// 存储用户的连接，用户信息
 		userSessionMap.saveSession(req.RequestID, req.ReqMsg)
 		userSessionMap.put(req.RequestID, stream)
+
+		// 保存用户登录的服务器信息和订阅名称
+		userID := strconv.FormatInt(req.RequestID, 10)
+		channelInfo := model.UserChannelInfo{
+			UserID:      req.RequestID,
+			ChannelName: fmt.Sprintf("%s-%d", GetConfig().RpcPort, req.RequestID),
+		}
+		_ = c.ctx.server.userCache.StoreServerChannelInfo(userID, channelInfo)
+		// 用户订阅 redis 频道
+		c.ctx.server.SubscribeMessageByUser(channelInfo)
 
 		lg.Logger().Info(req.ReqMsg + " 用户登录成功")
 	}

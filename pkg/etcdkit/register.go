@@ -6,10 +6,12 @@ package etcdkit
 import (
 	"context"
 	"fmt"
+	"gim/internal/lg"
 	"net"
 	"strings"
 
 	"github.com/coreos/etcd/clientv3"
+	"go.uber.org/zap"
 )
 
 const (
@@ -52,7 +54,10 @@ func Register(target, service, host, port string, ttl int) error {
 	// 创建注销监测服务
 	go func() {
 		<-deregister
-		client.Delete(context.TODO(), serverKey)
+		_, err := client.Delete(context.TODO(), serverKey)
+		if err != nil {
+			lg.Logger().Error("etcd 删除服务失败", zap.Error(err))
+		}
 		deregister <- struct{}{}
 	}()
 

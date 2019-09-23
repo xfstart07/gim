@@ -4,22 +4,27 @@
 package server
 
 import (
+	"fmt"
+	"gim/internal/constant"
 	"gim/model"
 	"gim/pkg/rpc_service"
 	"sync"
+
+	"github.com/go-redis/redis"
 )
 
 // TODO 需要存储 redis ，使所有 server 都能读取
-var userSessionMap = newUserSession()
+var userSessionMap *userSession
 
 type userSession struct {
+	client   *redis.Client
 	sessions sync.Map
 	streams  sync.Map
 }
 
-func newUserSession() *userSession {
+func newUserSession(cli *redis.Client) *userSession {
 	return &userSession{
-		streams: sync.Map{},
+		client: cli,
 	}
 }
 
@@ -27,14 +32,22 @@ func newUserSession() *userSession {
 
 func (s *userSession) saveSession(userID int64, userName string) {
 	s.sessions.Store(userID, userName)
+	key := fmt.Sprintf("%s%d", constant.ServerSessionPrefixName, userID)
+	s.client.Set(key, userName, -1)
 }
 
 func (s *userSession) removeSession(userID int64) {
 	s.sessions.Delete(userID)
+	key := fmt.Sprintf("%s%d", constant.ServerSessionPrefixName, userID)
+	s.client.Del(key)
 }
 
 func (s *userSession) getSessionByUserID(userID int64) model.User {
-	name, _ := s.sessions.Load(userID)
+	name, ok := s.sessions.Load(userID)
+	if !ok {
+		key := fmt.Sprintf("%s%d", constant.ServerSessionPrefixName, userID)
+		name = s.client.Get(key).Val()
+	}
 	return model.User{
 		UserID:   userID,
 		UserName: name.(string),
@@ -45,7 +58,12 @@ func (s *userSession) getSessionByStream(stream rpc_service.GIMService_ChannelSe
 	user := model.User{}
 	s.rangStreams(func(key, value interface{}) {
 		if stream == value.(rpc_service.GIMService_ChannelServer) {
-			name, _ := s.sessions.Load(key)
+			name, ok := s.sessions.Load(key)
+			if !ok {
+				key := fmt.Sprintf("%s%v", constant.ServerSessionPrefixName, key)
+				name = s.client.Get(key).Val()
+			}
+
 			user.UserID = key.(int64)
 			user.UserName = name.(string)
 		}
@@ -61,7 +79,10 @@ func (s *userSession) put(userID int64, stream rpc_service.GIMService_ChannelSer
 }
 
 func (s *userSession) get(userID int64) rpc_service.GIMService_ChannelServer {
-	stream, _ := s.streams.Load(userID)
+	stream, ok := s.streams.Load(userID)
+	if !ok {
+		return nil
+	}
 	return stream.(rpc_service.GIMService_ChannelServer)
 }
 
