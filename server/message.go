@@ -6,12 +6,10 @@ package server
 import (
 	"encoding/json"
 	"gim/internal/constant"
-	"gim/internal/lg"
 	"gim/model"
 	"gim/pkg/rpc_service"
 
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
 )
 
 var errMessageSendFailed = errors.New("message send failed")
@@ -34,8 +32,7 @@ func (s *Server) pushMsg(stream rpc_service.GIMService_ChannelServer, msg model.
 
 	err := stream.Send(res)
 	if err != nil {
-		lg.Logger().Error("消息发送失败", zap.Error(err))
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil

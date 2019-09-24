@@ -4,6 +4,7 @@
 package lg
 
 import (
+	"flag"
 	"fmt"
 	"log"
 
@@ -15,24 +16,16 @@ const (
 	InfoLevel  = "info"
 )
 
-var std = New(DebugLevel)
+var (
+	stdLevel string
+	std      *zap.Logger
+)
 
-type LoggerPrintf interface {
-	Printf(f string, v ...interface{})
-}
+func init() {
+	// FIXME：flag 是隐藏在不同的包中，还是统一放在 main 中好呢？
+	flag.StringVar(&stdLevel, "log_level", DebugLevel, "set server log level")
 
-type loggerPrintf struct {
-	logger *zap.Logger
-}
-
-func NewPrintf(verbose string) LoggerPrintf {
-	return &loggerPrintf{
-		logger: New(verbose),
-	}
-}
-
-func (l loggerPrintf) Printf(f string, v ...interface{}) {
-	l.logger.Info(fmt.Sprintf(f, v...))
+	std = New(stdLevel)
 }
 
 func Logger() *zap.Logger {
