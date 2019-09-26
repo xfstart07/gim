@@ -53,7 +53,7 @@ func (s *Server) SubscribeMessageByUser(channelInfo model.UserChannelInfo) {
 	subscribe := s.redisClient.Subscribe(channelInfo.ChannelName)
 
 	go func() {
-		// FIXME: go chan 缓存是 100，当消息超过 100 时 30 秒后消息会丢失
+		// go chan 缓存是 100，当消息超过 100 时 30 秒后消息会丢失
 		for ch := range subscribe.Channel() {
 			go func(payLoad string) {
 				lg.Logger().Info("接收到消息处理中...")

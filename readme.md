@@ -14,7 +14,8 @@ Golang 实现 的 IM 系统。
 - [x]  6. 聊天信息存储文件中。
 - [x]  7. 接入 etcd 做客户端和服务端的服务发现。
 - [x]  8. 完善客户端重连和服务端连接下线功能
-- [x]  重构代码，将对象接口化，合理化
+- [x]  9. 通过 redis 的 pubsub 分发消息
+- [x]  10. 重构代码，将对象接口化，合理化
 - [ ]  添加测试用例
 
 接下来:
@@ -27,7 +28,7 @@ Golang 实现 的 IM 系统。
 生成 GRPC 接口描述文件
 
 ```bash
-protoc --go_out=plugins=grpc:pkg/rpc_service -I protocol message.proto
+make gen_proto
 ```
 
 ## 消息
