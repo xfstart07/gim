@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"gim/internal/lg"
 	"strings"
+	"time"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -78,7 +79,9 @@ func (r *Resolver) watch(prefix string) {
 		//r.cc.NewAddress(addrList)
 	}
 
-	resp, err := r.cli.Get(context.Background(), prefix, clientv3.WithPrefix())
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	resp, err := r.cli.Get(ctx, prefix, clientv3.WithPrefix())
 	if err == nil {
 		for i := range resp.Kvs {
 			addrDict[string(resp.Kvs[i].Value)] = resolver.Address{Addr: string(resp.Kvs[i].Value)}

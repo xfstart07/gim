@@ -53,7 +53,9 @@ func (c *userClient) Start() (err error) {
 	c.reset()
 
 	rpcDiaUrl := fmt.Sprintf("%s://authority/%s", c.ctx.client.etcdResolver.Scheme(), c.config.EtcdServerName)
-	conn, err := grpc.Dial(rpcDiaUrl, grpc.WithBalancerName(roundrobin.Name), grpc.WithInsecure())
+	ctx, cancel := context2.WithTimeout(context2.Background(), 10*time.Second)
+	defer cancel()
+	conn, err := grpc.DialContext(ctx, rpcDiaUrl, grpc.WithBalancerName(roundrobin.Name), grpc.WithInsecure())
 	if err != nil {
 		panic(err)
 	}
