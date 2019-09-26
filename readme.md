@@ -66,3 +66,9 @@ make run_client
 ```bash
 go run cmd/client/client.go --user_id=1568012126668462000 --username=kevin
 ```
+
+## 构建
+
+```bash
+make build_server
+```

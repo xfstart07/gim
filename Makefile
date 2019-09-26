@@ -26,6 +26,10 @@ run_client: vet_client
 	@echo Run client
 	$(GO) run $(Client)
 
+build_server: vet_server
+	@echo Build Server
+	$(GO) build -tags=jsoniter .
+
 gen_proto:
 	@echo generator protobuf
 	protoc --go_out=plugins=grpc:pkg/rpc_service -I protocol message.proto
