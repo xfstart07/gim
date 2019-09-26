@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/balancer/roundrobin"
 
 	"go.uber.org/zap"
 )
@@ -52,7 +51,10 @@ func (c *userClient) Start() (err error) {
 	rpcDiaUrl := fmt.Sprintf("%s://authority/%s", c.ctx.client.etcdResolver.Scheme(), c.config.EtcdServerName)
 	ctx, cancel := context2.WithTimeout(context2.Background(), 10*time.Second)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, rpcDiaUrl, grpc.WithBalancerName(roundrobin.Name), grpc.WithInsecure())
+
+	// https://github.com/grpc/grpc/blob/master/doc/service_config.md
+	// conn, err := grpc.DialContext(ctx, rpcDiaUrl, grpc.WithBalancerName(roundrobin.Name), grpc.WithInsecure())
+	conn, err := grpc.DialContext(ctx, rpcDiaUrl, grpc.WithInsecure(), grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
 	if err != nil {
 		panic(err)
 	}

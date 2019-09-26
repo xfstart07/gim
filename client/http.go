@@ -31,7 +31,7 @@ func newHTTPServer() *httpServer {
 	return server
 }
 
-// 注册接口
+// 注册路由
 func (s *httpServer) setRouter() {
 	s.router.POST("/sendMsg", s.sendMsg)
 }
