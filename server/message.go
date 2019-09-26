@@ -49,7 +49,12 @@ func (s *Server) sendP2PMsg(msg model.P2PReq) error {
 	}
 	msgBody, _ := json.Marshal(pushMsg)
 
-	return s.Publish(channelInfo.ChannelName, string(msgBody))
+	err := s.Publish(channelInfo.ChannelName, string(msgBody))
+	if err != nil {
+		err = errors.WithStack(err)
+	}
+
+	return err
 }
 
 func (s *Server) sendGroupMsg(msg model.MsgReq) error {

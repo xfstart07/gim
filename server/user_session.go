@@ -13,7 +13,6 @@ import (
 	"github.com/go-redis/redis"
 )
 
-// TODO 需要存储 redis ，使所有 server 都能读取
 var userSessionMap *userSession
 
 type userSession struct {

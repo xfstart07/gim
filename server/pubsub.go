@@ -5,10 +5,11 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"gim/internal/constant"
 	"gim/internal/lg"
 	"gim/model"
+
+	"github.com/pkg/errors"
 
 	"go.uber.org/zap"
 )
@@ -37,7 +38,12 @@ func (s *Server) PublishGroup(msg model.MsgReq) error {
 		msgBody, _ := json.Marshal(pushMsg)
 
 		err := s.Publish(channel.ChannelName, string(msgBody))
-		errs = fmt.Errorf("%v, %v", errs, err)
+		if err != nil {
+			errs = errors.Wrap(errs, err.Error())
+		}
+	}
+	if errs != nil {
+		errs = errors.WithStack(errs)
 	}
 
 	return errs
