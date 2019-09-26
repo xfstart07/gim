@@ -5,6 +5,7 @@ package client
 
 import (
 	"flag"
+	"gim/internal/lg"
 	"gim/model"
 
 	"github.com/go-ini/ini"
@@ -33,10 +34,12 @@ func InitConfig() error {
 		return err
 	}
 
+	lg.Logger().Sugar().Info(conf)
+
 	// 根据命令行传入信息更新用户信息
 	if confUserID != 0 {
 		conf.UserID = confUserID
-		conf.Username = confUserName
+		conf.UserName = confUserName
 	}
 
 	return nil
@@ -44,8 +47,6 @@ func InitConfig() error {
 
 func defaultConfig() *model.ClientConfig {
 	return &model.ClientConfig{
-		UserID:         1434348343,
-		Username:       "Leon",
 		WebPort:        "8082",
 		ServerIP:       "localhost",
 		ServerPort:     "8083",

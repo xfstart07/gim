@@ -37,13 +37,10 @@ type userClient struct {
 
 func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient) {
 	uc = &userClient{
-		ctx:    ctx,
-		config: cfg,
-		msgLog: NewWriter(ctx, cfg),
-		userInfo: model.User{
-			UserID:   GetConfig().UserID,
-			UserName: GetConfig().Username,
-		},
+		ctx:      ctx,
+		config:   cfg,
+		msgLog:   NewWriter(ctx, cfg),
+		userInfo: cfg.User,
 	}
 
 	return

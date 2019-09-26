@@ -6,8 +6,8 @@ package model
 import "fmt"
 
 type User struct {
-	UserID   int64  `json:"user_id"`
-	UserName string `json:"user_name" binding:"required"`
+	UserID   int64  `json:"user_id" ini:"user_id"`
+	UserName string `json:"user_name" ini:"user_name" binding:"required"`
 }
 
 func (u *User) FormatMsg(msg string) string {

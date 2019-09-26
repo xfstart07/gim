@@ -63,7 +63,7 @@ func NewWriter(ctx *context, cfg *model.ClientConfig) *asyncWriter {
 
 func (w *asyncWriter) writeMsg(msg string) {
 	now := time.Now()
-	dir := w.config.MsgLogPath + w.config.Username + "/"
+	dir := w.config.MsgLogPath + w.config.UserName + "/"
 	fileName := fmt.Sprintf("%d%d%d.log", now.Year(), now.Month(), now.Day())
 
 	_, ok := fileutils.FindDir(dir)

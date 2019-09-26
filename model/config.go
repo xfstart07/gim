@@ -4,8 +4,7 @@
 package model
 
 type ClientConfig struct {
-	UserID   int64  `ini:"user_id"`
-	Username string `ini:"username"`
+	User
 
 	WebPort    string `ini:"web_port"`
 	ServerIP   string `ini:"server_ip"`

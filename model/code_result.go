@@ -3,6 +3,10 @@
 
 package model
 
+const (
+	CodeSuccessed = "0"
+)
+
 type CodeResult struct {
 	Code    string      `json:"code"`
 	Message string      `json:"message"`

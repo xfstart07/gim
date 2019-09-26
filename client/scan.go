@@ -42,6 +42,6 @@ func (s *scanner) Scan() {
 		}
 		s.msgHandler.SendMsg(msg)
 
-		lg.Logger().Info(fmt.Sprintf("%s: 【%s】", GetConfig().Username, msg))
+		lg.Logger().Info(fmt.Sprintf("%s: 【%s】", GetConfig().UserName, msg))
 	}
 }
