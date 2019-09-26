@@ -5,8 +5,9 @@ package lg
 
 import (
 	"flag"
-	"fmt"
 	"log"
+
+	"go.uber.org/zap/zapcore"
 
 	"go.uber.org/zap"
 )
@@ -45,9 +46,12 @@ func New(lvl string) *zap.Logger {
 		config = zap.NewDevelopmentConfig()
 	} else {
 		config = zap.NewProductionConfig()
+		config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	}
 
+	// FIXME: 采用 pkg/errors 的 WithStack 来打印调用栈
 	config.DisableStacktrace = false
+
 	config.DisableCaller = false
 	config.OutputPaths = []string{"stdout"}
 	config.ErrorOutputPaths = []string{"stdout"}
@@ -58,8 +62,4 @@ func New(lvl string) *zap.Logger {
 	}
 
 	return lg
-}
-
-func Logf(f string, args ...interface{}) string {
-	return fmt.Sprintf(f, args...)
 }
