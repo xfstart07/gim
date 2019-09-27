@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 	"gim/client/handler"
+	"gim/internal/ciface"
 	"gim/internal/http_helper"
 	"gim/internal/lg"
 	"gim/model"
@@ -17,7 +18,7 @@ import (
 
 type httpServer struct {
 	router     *gin.Engine
-	msgHandler handler.MessageHandleInterface
+	msgHandler ciface.MessageHandler
 }
 
 func newHTTPServer() *httpServer {

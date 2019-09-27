@@ -12,4 +12,5 @@ const (
 const (
 	ServerChannelPrefixName = "gim-server-channel:"
 	ServerSessionPrefixName = "gin-server-session:"
+	LoginStatusSetKey       = "login-status"
 )

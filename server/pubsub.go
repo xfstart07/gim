@@ -21,8 +21,8 @@ func (s *Server) Publish(channelName, msg string) error {
 func (s *Server) PublishGroup(msg model.MsgReq) error {
 	var errs error
 
-	channels := s.userCache.GetAllServerChannelInfo()
-	user := userSessionMap.getSessionByUserID(msg.UserID)
+	channels := s.accountSrv.GetAllServerChannelInfo()
+	user := s.accountSrv.GetSessionByUserID(msg.UserID)
 	formatMsg := user.FormatMsg(msg.Msg)
 
 	for _, channel := range channels {

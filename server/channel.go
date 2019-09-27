@@ -10,7 +10,6 @@ import (
 	"gim/model"
 	"gim/pkg/rpc_service"
 	"io"
-	"strconv"
 
 	"go.uber.org/zap"
 )
@@ -69,17 +68,22 @@ func (c *channelService) channelHandler(stream rpc_service.GIMService_ChannelSer
 		// 登录处理
 		res.ResMsg = "OK"
 
+		if c.ctx.server.accountSrv.SaveAndCheckLogin(req.RequestID) {
+			res.ResMsg = "Logined"
+
+			return res
+		}
+
 		// 存储用户的连接，用户信息
-		userSessionMap.saveSession(req.RequestID, req.ReqMsg)
+		c.ctx.server.accountSrv.SaveSession(req.RequestID, req.ReqMsg)
 		userSessionMap.put(req.RequestID, stream)
 
 		// 保存用户登录的服务器信息和订阅名称
-		userID := strconv.FormatInt(req.RequestID, 10)
 		channelInfo := model.UserChannelInfo{
 			UserID:      req.RequestID,
 			ChannelName: fmt.Sprintf("%s-%d", GetConfig().RpcPort, req.RequestID),
 		}
-		_ = c.ctx.server.userCache.StoreServerChannelInfo(userID, channelInfo)
+		_ = c.ctx.server.accountSrv.StoreServerChannelInfo(req.RequestID, channelInfo)
 		// 用户订阅 redis 频道
 		c.ctx.server.SubscribeMessageByUser(channelInfo)
 

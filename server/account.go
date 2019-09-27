@@ -5,20 +5,21 @@ package server
 
 import (
 	"gim/model"
-	"gim/server/service"
 	"time"
 )
 
 // 注册用户，存入 redis
 func (s *Server) accountRegister(user model.User) (model.User, error) {
-	srv := service.NewAccountService(s.redisClient)
-
-	// TODO: 生成用户 ID，目前使用 时间戳，但是当用户同时注册时，可能会有冲突，生成出相同值
+	// 生成用户 ID，目前使用时间戳，但是当高并发用户同时注册时，可能会有冲突，生成出相同值
 	user.UserID = time.Now().UnixNano()
-	return srv.Register(user)
+	return s.accountSrv.Register(user)
 }
 
 func (s *Server) userOffline(user model.User) {
-	userSessionMap.removeSession(user.UserID)
+	userSessionMap.ctx.server.accountSrv.RemoveSession(user.UserID)
 	userSessionMap.remove(user.UserID)
+}
+
+func (s *Server) getOnlineUsers() []model.User {
+	return s.accountSrv.GetAllOnlineUsers()
 }

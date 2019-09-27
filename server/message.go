@@ -39,9 +39,9 @@ func (s *Server) pushMsg(stream rpc_service.GIMService_ChannelServer, msg model.
 }
 
 func (s *Server) sendP2PMsg(msg model.P2PReq) error {
-	channelInfo := s.userCache.ServerChannelInfo(msg.ReceiverIDToString())
+	channelInfo := s.accountSrv.ServerChannelInfo(msg.ReceiverID)
 
-	user := userSessionMap.getSessionByUserID(msg.UserID)
+	user := s.accountSrv.GetSessionByUserID(msg.UserID)
 	pushMsg := model.PushMsg{
 		UserID:  msg.ReceiverID,
 		Msg:     user.FormatMsg(msg.Msg),

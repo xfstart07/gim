@@ -4,14 +4,14 @@
 package service
 
 import (
-	"errors"
 	"fmt"
-	"gim/internal/lg"
 	"gim/model"
+	"gim/server/constant"
 	"strconv"
 	"strings"
+	"sync"
 
-	"go.uber.org/zap"
+	"github.com/pkg/errors"
 
 	"github.com/go-redis/redis"
 )
@@ -20,34 +20,41 @@ const (
 	AccountPrefix = "gim-account:"
 )
 
-var (
-	errAccountStore      = errors.New("用户存储失败")
-	errAccountRegistered = errors.New("用户已注册")
-)
-
 type AccountServiceInterface interface {
 	Register(user model.User) (model.User, error)
+
+	SaveSession(int64, string)
+	GetSessionByUserID(int64) model.User
+	RemoveSession(userID int64)
+	SaveAndCheckLogin(userID int64) bool
+
+	StoreServerChannelInfo(userID int64, channelInfo model.UserChannelInfo) error
+	ServerChannelInfo(userID int64) model.UserChannelInfo
+	GetAllServerChannelInfo() []model.UserChannelInfo
+	GetAllOnlineUsers() []model.User
 }
 
+var (
+	accountSrv  *accountService
+	accountOnly sync.Once
+)
+
 type accountService struct {
-	client *redis.Client
+	client   *redis.Client
+	sessions sync.Map
 }
 
 func (s *accountService) Register(user model.User) (model.User, error) {
-	key := fmt.Sprintf("%s%d", AccountPrefix, user.UserID)
+	key := accountRegisterKey(user.UserID)
 
 	val := s.client.Get(user.UserName).Val()
 	if val == "" {
-		err := s.client.Set(key, user.UserName, -1).Err()
-		if err != nil {
-			lg.Logger().Error("redis 存储失败", zap.Error(err))
-			return user, errAccountStore
+		if err := s.client.Set(key, user.UserName, -1).Err(); err != nil {
+			return user, errors.WithStack(err)
 		}
 
-		err = s.client.Set(user.UserName, key, -1).Err()
-		if err != nil {
-			lg.Logger().Error("redis 存储失败", zap.Error(err))
-			return user, errAccountStore
+		if err := s.client.Set(user.UserName, key, -1).Err(); err != nil {
+			return user, errors.WithStack(err)
 		}
 		return user, nil
 	}
@@ -56,11 +63,19 @@ func (s *accountService) Register(user model.User) (model.User, error) {
 	id := strings.Split(":", val)[1]
 	user.UserID, _ = strconv.ParseInt(id, 10, 64)
 
-	return user, errAccountRegistered
+	return user, constant.ErrAccountRegistered
 }
 
-func NewAccountService(client *redis.Client) *accountService {
-	return &accountService{
-		client: client,
-	}
+func GetAccountService(client *redis.Client) *accountService {
+	accountOnly.Do(func() {
+		accountSrv = &accountService{
+			client: client,
+		}
+	})
+
+	return accountSrv
+}
+
+func accountRegisterKey(userID int64) string {
+	return fmt.Sprintf("%s%d", AccountPrefix, userID)
 }

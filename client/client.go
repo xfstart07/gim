@@ -101,6 +101,7 @@ func (c *userClient) dispatch() {
 				lg.Logger().Error("发送消息失败", zap.Error(err), zap.Any("req", req))
 			}
 		case res := <-c.receiveCh:
+			// TODO: 判断登录状态
 			c.writerMsg(res.ResponseID, res.ResMsg, res.MsgType)
 		case <-heartbeatTime.C:
 			err := c.sendHeartbeat()
@@ -190,6 +191,13 @@ func (c *userClient) recvPump() {
 
 func (c *userClient) writerMsg(userID int64, msg string, msgType int32) {
 	lg.Logger().Info(msg)
+
+	if msgType == constant.LoginMsg {
+		if msg != "OK" {
+			// TODO: shutdown, user logined
+			c.shutdown()
+		}
+	}
 
 	// asyncWriter log
 	if msgType == constant.ChatMsg {

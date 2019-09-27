@@ -5,26 +5,30 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"gim/internal/constant"
 	"gim/model"
-
-	"github.com/go-redis/redis"
+	"strconv"
 )
 
-type UserCache interface {
-	StoreServerChannelInfo(userID string, channelInfo model.UserChannelInfo) error
-	ServerChannelInfo(userID string) model.UserChannelInfo
-	GetAllServerChannelInfo() []model.UserChannelInfo
+func (s *accountService) GetAllOnlineUsers() []model.User {
+	keys := s.client.SMembers(constant.LoginStatusSetKey).Val()
+
+	users := make([]model.User, 0, len(keys))
+	for _, value := range keys {
+		userID, _ := strconv.ParseInt(value, 10, 64)
+
+		user := s.GetSessionByUserID(userID)
+		users = append(users, user)
+	}
+
+	return users
 }
 
-type userCacheService struct {
-	client *redis.Client
-}
+func (s *accountService) GetAllServerChannelInfo() []model.UserChannelInfo {
+	keys := s.client.Keys(constant.ServerChannelPrefixName + "*").Val()
 
-func (c *userCacheService) GetAllServerChannelInfo() []model.UserChannelInfo {
-	keys := c.client.Keys(constant.ServerChannelPrefixName + "*").Val()
-
-	values := c.client.MGet(keys...).Val()
+	values := s.client.MGet(keys...).Val()
 
 	channels := make([]model.UserChannelInfo, 0, len(values))
 	for _, value := range values {
@@ -38,22 +42,20 @@ func (c *userCacheService) GetAllServerChannelInfo() []model.UserChannelInfo {
 	return channels
 }
 
-func (c *userCacheService) StoreServerChannelInfo(userID string, channelInfo model.UserChannelInfo) error {
+func (s *accountService) StoreServerChannelInfo(userID int64, channelInfo model.UserChannelInfo) error {
 	infoByte, _ := json.Marshal(channelInfo)
-	return c.client.Set(constant.ServerChannelPrefixName+userID, string(infoByte), -1).Err()
+	return s.client.Set(channelInfoKey(userID), string(infoByte), -1).Err()
 }
 
-func (c *userCacheService) ServerChannelInfo(userID string) model.UserChannelInfo {
+func (s *accountService) ServerChannelInfo(userID int64) model.UserChannelInfo {
 	var channelInfo model.UserChannelInfo
-	infoByte := c.client.Get(constant.ServerChannelPrefixName + userID).Val()
+	infoByte := s.client.Get(channelInfoKey(userID)).Val()
 
 	_ = json.Unmarshal([]byte(infoByte), &channelInfo)
 
 	return channelInfo
 }
 
-func NewUserCache(client *redis.Client) *userCacheService {
-	return &userCacheService{
-		client: client,
-	}
+func channelInfoKey(userID int64) string {
+	return fmt.Sprintf("%s%d", constant.ServerChannelPrefixName, userID)
 }

@@ -7,6 +7,7 @@ import (
 	"bufio"
 	"fmt"
 	"gim/client/handler"
+	"gim/internal/ciface"
 	"gim/internal/lg"
 	"os"
 )
@@ -14,7 +15,7 @@ import (
 type scanner struct {
 	ctx        *context
 	buffer     *bufio.Scanner
-	msgHandler handler.MessageHandleInterface
+	msgHandler ciface.MessageHandler
 }
 
 func NewScan(ctx *context) *scanner {
@@ -34,6 +35,11 @@ func (s *scanner) Scan() {
 		msg = s.buffer.Text()
 		if msg == "" {
 			lg.Logger().Info("不能输入空消息!")
+			continue
+		}
+
+		if s.msgHandler.InnerCommand(msg) {
+			// 内置命令
 			continue
 		}
 

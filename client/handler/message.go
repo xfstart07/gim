@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"gim/client/service"
 	"gim/internal/lg"
 	"gim/model"
 	"io/ioutil"
@@ -22,18 +23,15 @@ var (
 	errP2PSendFail = errors.New("私聊消息发送失败")
 )
 
-type MessageHandleInterface interface {
-	CheckMsg(string) bool
-	SendMsg(string)
-}
-
 type messageHandler struct {
-	config *model.ClientConfig
+	config          *model.ClientConfig
+	innerCommandCtx *service.InnerCommandContext
 }
 
 func NewMessageHandler(cfg *model.ClientConfig) *messageHandler {
 	return &messageHandler{
-		config: cfg,
+		config:          cfg,
+		innerCommandCtx: service.NewInnerCommandContext(cfg),
 	}
 }
 
@@ -107,4 +105,15 @@ func (h *messageHandler) sendGroupMsg(req model.MsgReq) error {
 	lg.Logger().Info("发送结果" + string(respBody))
 
 	return nil
+}
+
+func (h *messageHandler) InnerCommand(msg string) bool {
+	if strings.HasPrefix(msg, ":") {
+		commander := h.innerCommandCtx.CreateCommander(msg)
+		commander.Process(msg)
+
+		return true
+	}
+
+	return false
 }

@@ -16,9 +16,8 @@ import (
 
 type Server struct {
 	redisClient *redis.Client
-	userCache   service.UserCache
-
-	waitGroup util.WaitGroupWrapper
+	accountSrv  service.AccountServiceInterface
+	waitGroup   util.WaitGroupWrapper
 }
 
 func New() *Server {
@@ -35,12 +34,12 @@ func (s *Server) Main() {
 
 	// set external service, redis
 	s.initRedis()
-	s.userCache = service.NewUserCache(s.redisClient)
-
-	// initial user global sessions Map
-	userSessionMap = newUserSession(s.redisClient)
+	s.accountSrv = service.GetAccountService(s.redisClient)
 
 	ctx := &context{s}
+
+	// initial user global sessions Map
+	userSessionMap = newUserSession(ctx)
 
 	if GetConfig().WebEnable {
 		server := newHTTPServer(ctx)
@@ -78,7 +77,7 @@ func (s *Server) initRedis() {
 		DB:       GetConfig().RedisDB,
 	})
 
-	_, err := s.redisClient.Ping().Result()
+	err := s.redisClient.Ping().Err()
 	if err != nil {
 		panic(err)
 	}

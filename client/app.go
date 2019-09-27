@@ -40,7 +40,6 @@ func (c *AppClient) Main() {
 	resolver.Register(c.etcdResolver)
 
 	uClient := newUserClient(ctx, GetConfig())
-
 	if err := uClient.Start(); err != nil {
 		panic(err)
 	}

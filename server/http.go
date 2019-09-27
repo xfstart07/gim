@@ -8,6 +8,7 @@ import (
 	"gim/internal/http_helper"
 	"gim/internal/lg"
 	"gim/model"
+	"gim/server/constant"
 
 	"go.uber.org/zap"
 
@@ -36,6 +37,7 @@ func (s *httpServer) setRouter() {
 	s.router.POST("/sendMsg", s.sendMsg)
 	s.router.POST("/sendP2PMsg", s.sendP2PMsg)
 	s.router.POST("/sendGroupMsg", s.sendGroupMsg)
+	s.router.GET("/onlineUsers", s.onlineUsers)
 }
 
 func (s *httpServer) Run() {
@@ -57,7 +59,12 @@ func (s *httpServer) registerAccount(ctx *gin.Context) {
 	// register account
 	register, err := s.ctx.server.accountRegister(user)
 	if err != nil {
-		http_helper.Render500(ctx, err)
+		lg.Logger().Error("注册失败", zap.Error(err))
+		// TODO: 如何判断 err
+		//if errors.Cause(err) == constant.ErrAccountRegistered {
+		//	err = constant.ErrAccountRegistered
+		//}
+		http_helper.Render500(ctx, constant.ErrServerFail)
 		return
 	}
 
@@ -83,7 +90,7 @@ func (s *httpServer) sendMsg(ctx *gin.Context) {
 		return
 	}
 
-	http_helper.RenderOK(ctx, nil)
+	http_helper.RenderCreated(ctx, nil)
 }
 
 // sendP2PMsg 用户私聊
@@ -104,7 +111,7 @@ func (s *httpServer) sendP2PMsg(ctx *gin.Context) {
 		return
 	}
 
-	http_helper.RenderOK(ctx, nil)
+	http_helper.RenderCreated(ctx, nil)
 }
 
 // sendGroupMsg 用户群聊
@@ -125,5 +132,11 @@ func (s *httpServer) sendGroupMsg(ctx *gin.Context) {
 		return
 	}
 
-	http_helper.RenderOK(ctx, nil)
+	http_helper.RenderCreated(ctx, nil)
+}
+
+func (s *httpServer) onlineUsers(ctx *gin.Context) {
+	users := s.ctx.server.getOnlineUsers()
+
+	http_helper.RenderOK(ctx, users)
 }
