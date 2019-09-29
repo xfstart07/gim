@@ -12,7 +12,7 @@ import (
 )
 
 func (s *accountService) GetAllOnlineUsers() []model.User {
-	keys := s.client.SMembers(constant.LoginStatusSetKey).Val()
+	keys := s.store.SMembers(constant.LoginStatusSetKey).Val()
 
 	users := make([]model.User, 0, len(keys))
 	for _, value := range keys {
@@ -26,9 +26,9 @@ func (s *accountService) GetAllOnlineUsers() []model.User {
 }
 
 func (s *accountService) GetAllServerChannelInfo() []model.UserChannelInfo {
-	keys := s.client.Keys(constant.ServerChannelPrefixName + "*").Val()
+	keys := s.store.Keys(constant.ServerChannelPrefixName + "*").Val()
 
-	values := s.client.MGet(keys...).Val()
+	values := s.store.MGet(keys...).Val()
 
 	channels := make([]model.UserChannelInfo, 0, len(values))
 	for _, value := range values {
@@ -44,12 +44,12 @@ func (s *accountService) GetAllServerChannelInfo() []model.UserChannelInfo {
 
 func (s *accountService) StoreServerChannelInfo(userID int64, channelInfo model.UserChannelInfo) error {
 	infoByte, _ := json.Marshal(channelInfo)
-	return s.client.Set(channelInfoKey(userID), string(infoByte), -1).Err()
+	return s.store.Set(channelInfoKey(userID), string(infoByte), -1).Err()
 }
 
 func (s *accountService) ServerChannelInfo(userID int64) model.UserChannelInfo {
 	var channelInfo model.UserChannelInfo
-	infoByte := s.client.Get(channelInfoKey(userID)).Val()
+	infoByte := s.store.Get(channelInfoKey(userID)).Val()
 
 	_ = json.Unmarshal([]byte(infoByte), &channelInfo)
 

@@ -6,6 +6,7 @@ package client
 import (
 	context2 "context"
 	"fmt"
+	"gim/client/service"
 	"gim/internal/constant"
 	"gim/internal/lg"
 	"gim/model"
@@ -25,7 +26,7 @@ type userClient struct {
 	userInfo model.User
 	errCount int
 
-	msgLog MsgLogger
+	msgWriter service.MsgLogger
 
 	rpc       *rpcServer
 	channel   rpc_service.GIMService_ChannelClient
@@ -36,10 +37,10 @@ type userClient struct {
 
 func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient) {
 	uc = &userClient{
-		ctx:      ctx,
-		config:   cfg,
-		msgLog:   NewWriter(ctx, cfg),
-		userInfo: cfg.User,
+		ctx:       ctx,
+		config:    cfg,
+		msgWriter: service.NewWriter(cfg),
+		userInfo:  cfg.User,
 	}
 
 	return
@@ -141,6 +142,8 @@ func (c *userClient) shutdown() {
 	defer c.rpc.conn.Close()
 
 	close(c.closeCh)
+
+	lg.Logger().Fatal("退出！")
 }
 
 func (c *userClient) Login() {
@@ -201,6 +204,6 @@ func (c *userClient) writerMsg(userID int64, msg string, msgType int32) {
 
 	// asyncWriter log
 	if msgType == constant.ChatMsg {
-		c.msgLog.Log(msg)
+		c.msgWriter.Log(msg)
 	}
 }

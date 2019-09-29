@@ -25,7 +25,7 @@ func newUserSession(ctx *context) *userSession {
 // Sessions
 
 func (s *userSession) getSessionByStream(stream rpc_service.GIMService_ChannelServer) model.User {
-	user := model.User{}
+	var user model.User
 	s.rangStreams(func(key, value interface{}) bool {
 		if stream == value.(rpc_service.GIMService_ChannelServer) {
 			user = s.ctx.server.accountSrv.GetSessionByUserID(key.(int64))

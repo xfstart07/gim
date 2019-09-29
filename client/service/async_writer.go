@@ -1,7 +1,7 @@
 // Author: xufei
 // Date: 2019-09-10 14:54
 
-package client
+package service
 
 import (
 	"fmt"
@@ -20,7 +20,6 @@ type MsgLogger interface {
 }
 
 type asyncWriter struct {
-	ctx      *context
 	config   *model.ClientConfig
 	writerCh chan string
 	exitChan chan int
@@ -46,17 +45,14 @@ func (w *asyncWriter) logPump() {
 	}
 }
 
-func NewWriter(ctx *context, cfg *model.ClientConfig) *asyncWriter {
+func NewWriter(cfg *model.ClientConfig) *asyncWriter {
 	writer := &asyncWriter{
-		ctx:      ctx,
 		config:   cfg,
-		writerCh: make(chan string, 16), // 缓存通道，最多接收 16 条消息写入
+		writerCh: make(chan string, 16), // 缓存通道，最多处理 16 条消息写入
 		exitChan: make(chan int),
 	}
 
-	writer.ctx.client.waitGroup.Wrap(func() {
-		writer.logPump()
-	})
+	go writer.logPump()
 
 	return writer
 }

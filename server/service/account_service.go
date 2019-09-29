@@ -8,7 +8,6 @@ import (
 	"gim/model"
 	"gim/server/constant"
 	"strconv"
-	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -40,28 +39,27 @@ var (
 )
 
 type accountService struct {
-	client   *redis.Client
+	store    *redis.Client
 	sessions sync.Map
 }
 
 func (s *accountService) Register(user model.User) (model.User, error) {
 	key := accountRegisterKey(user.UserID)
 
-	val := s.client.Get(user.UserName).Val()
+	val := s.store.Get(user.UserName).Val()
 	if val == "" {
-		if err := s.client.Set(key, user.UserName, -1).Err(); err != nil {
+		if err := s.store.Set(key, user.UserName, -1).Err(); err != nil {
 			return user, errors.WithStack(err)
 		}
 
-		if err := s.client.Set(user.UserName, key, -1).Err(); err != nil {
+		if err := s.store.Set(user.UserName, user.UserID, -1).Err(); err != nil {
 			return user, errors.WithStack(err)
 		}
 		return user, nil
+	} else {
+		// 返回已注册 UserID
+		user.UserID, _ = strconv.ParseInt(val, 10, 64)
 	}
-
-	// 返回已注册 UserID
-	id := strings.Split(":", val)[1]
-	user.UserID, _ = strconv.ParseInt(id, 10, 64)
 
 	return user, constant.ErrAccountRegistered
 }
@@ -69,7 +67,7 @@ func (s *accountService) Register(user model.User) (model.User, error) {
 func GetAccountService(client *redis.Client) *accountService {
 	accountOnly.Do(func() {
 		accountSrv = &accountService{
-			client: client,
+			store: client,
 		}
 	})
 

@@ -36,8 +36,12 @@ func (c *channelService) Channel(stream rpc_service.GIMService_ChannelServer) er
 
 			// 连接异常，用户下线
 			user := userSessionMap.getSessionByStream(stream)
-			c.ctx.server.userOffline(user)
-			lg.Logger().Info(user.UserName + "下线成功!")
+			if user.UserID != 0 {
+				lg.Logger().Info(user.UserName + "下线成功!")
+				c.ctx.server.userOffline(user)
+			} else {
+				lg.Logger().Warn("未查询到用户信息!")
+			}
 
 			return err
 		}
