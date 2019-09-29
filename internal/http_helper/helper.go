@@ -20,16 +20,20 @@ func Render500(ctx *gin.Context, err error) {
 
 func RenderOK(ctx *gin.Context, data interface{}) {
 	ctx.JSON(http.StatusOK, model.CodeResult{
-		Code:    model.CodeSuccessed,
-		Message: "OK",
-		Data:    data,
+		CodeMessage: model.CodeMessage{
+			Code:    model.CodeSuccessed,
+			Message: "OK",
+		},
+		Data: data,
 	})
 }
 
 func RenderCreated(ctx *gin.Context, data interface{}) {
 	ctx.JSON(http.StatusCreated, model.CodeResult{
-		Code:    model.CodeSuccessed,
-		Message: "OK",
-		Data:    data,
+		CodeMessage: model.CodeMessage{
+			Code:    model.CodeSuccessed,
+			Message: "OK",
+		},
+		Data: data,
 	})
 }

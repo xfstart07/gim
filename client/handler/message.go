@@ -110,7 +110,11 @@ func (h *messageHandler) sendGroupMsg(req model.MsgReq) error {
 func (h *messageHandler) InnerCommand(msg string) bool {
 	if strings.HasPrefix(msg, ":") {
 		commander := h.innerCommandCtx.CreateCommander(msg)
-		commander.Process(msg)
+		if commander != nil {
+			commander.Process(msg)
+		} else {
+			lg.Logger().Warn("命令错误!")
+		}
 
 		return true
 	}

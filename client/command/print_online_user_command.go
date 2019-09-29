@@ -33,6 +33,11 @@ func (c *PrintOnlineUserCommand) print(users []model.User) {
 	lg.Logger().Info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 }
 
+type onlineUsersResp struct {
+	model.CodeMessage
+	Data []model.User `json:"data"`
+}
+
 func (c *PrintOnlineUserCommand) reqOnlineUsers() []model.User {
 	url := fmt.Sprintf("http://%s:%s/onlineUsers", c.config.ServerIP, c.config.ServerPort)
 
@@ -46,10 +51,12 @@ func (c *PrintOnlineUserCommand) reqOnlineUsers() []model.User {
 	respBody, _ := ioutil.ReadAll(resp.Body)
 	lg.Logger().Info("获取结果" + string(respBody))
 
-	var users []model.User
-	_ = json.Unmarshal(respBody, &users)
+	var result onlineUsersResp
+	if err := json.Unmarshal(respBody, &result); err != nil {
+		lg.Logger().Error(err.Error())
+	}
 
-	return users
+	return result.Data
 }
 
 func NewPrintOnlineUserCommand(config *model.ClientConfig) *PrintOnlineUserCommand {

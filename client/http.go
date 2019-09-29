@@ -54,5 +54,5 @@ func (s *httpServer) sendMsg(ctx *gin.Context) {
 
 	s.msgHandler.SendMsg(fmt.Sprintf("%d;;%s", params.UserID, params.Msg))
 
-	http_helper.RenderCreated(ctx, model.CodeResult{Code: model.CodeSuccessed, Message: "成功"})
+	http_helper.RenderCreated(ctx, model.CodeResult{CodeMessage: model.CodeMessage{Code: model.CodeSuccessed, Message: "成功"}})
 }

@@ -7,10 +7,14 @@ const (
 	CodeSuccessed = "0"
 )
 
+type CodeMessage struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
 type CodeResult struct {
-	Code    string      `json:"code"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
+	CodeMessage
+	Data interface{} `json:"data"`
 }
 
 type ErrResult struct {
