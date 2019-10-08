@@ -16,12 +16,9 @@ Golang 实现 的 IM 系统。
 - [x]  8. 完善客户端重连和服务端连接下线功能
 - [x]  9. 通过 redis 的 pubsub 分发消息
 - [x]  10. 重构代码，将对象接口化，合理化
-- [ ]  添加测试用例
-
-接下来:
-
-- [ ]  用户退出，注销
-- [ ]  客户端获取所有用户列表
+- [x]  11. 用户退出，注销
+- [x]  12. 客户端获取所有用户列表
+- [ ]  13. 添加测试用例
 
 ## protobuf
 
@@ -61,11 +58,7 @@ make run_server
 make run_client
 ```
 
-要启动多个客户端需要指定用户信息
-
-```bash
-go run cmd/client/client.go --user_id=1568012126668462000 --username=kevin
-```
+要启动多个客户端需要更新 `config/client.ini` 的用户信息
 
 ## 构建
 
