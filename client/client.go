@@ -4,9 +4,6 @@
 package client
 
 import (
-	context2 "context"
-	"fmt"
-	"gim/client/handler"
 	"gim/client/service"
 	"gim/internal/ciface"
 	"gim/internal/constant"
@@ -29,8 +26,8 @@ type userClient struct {
 	isExit   bool // 标记客户端是否已经退出，避免多次退出
 	errCount int
 
-	msgHander ciface.MessageHandler
-	msgWriter service.MsgLogger
+	msgHandler ciface.MessageHandler
+	msgWriter  service.MsgLogger
 
 	rpc       *rpcServer
 	channel   rpc_service.GIMService_ChannelClient
@@ -46,7 +43,7 @@ func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient) {
 		msgWriter: service.NewWriter(cfg),
 		userInfo:  cfg.User,
 	}
-	uc.msgHander = handler.NewMessageHandler(uc, GetConfig())
+	uc.msgHandler = service.NewMessageHandler(uc, cfg)
 
 	return
 }
@@ -54,19 +51,8 @@ func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient) {
 func (c *userClient) Start() (err error) {
 	c.reset()
 
-	rpcDiaUrl := fmt.Sprintf("%s://authority/%s", c.ctx.client.etcdResolver.Scheme(), c.config.EtcdServerName)
-	ctx, cancel := context2.WithTimeout(context2.Background(), 10*time.Second)
-	defer cancel()
-
-	// https://github.com/grpc/grpc/blob/master/doc/service_config.md
-	// conn, err := grpc.DialContext(ctx, rpcDiaUrl, grpc.WithBalancerName(roundrobin.Name), grpc.WithInsecure())
-	conn, err := grpc.DialContext(ctx, rpcDiaUrl, grpc.WithInsecure(), grpc.WithDefaultServiceConfig(`{"loadBalancingPolicy": "round_robin"}`))
-	if err != nil {
-		panic(err)
-	}
-	c.rpc = newRpcServer(conn)
-
-	c.channel, err = rpc_service.NewGIMServiceClient(c.rpc.conn).Channel(context2.Background())
+	c.rpc = newRpcServer(c.ctx, c.config)
+	c.channel, err = c.rpc.GetChannel()
 	if err != nil {
 		return
 	}
@@ -98,7 +84,7 @@ func (c *userClient) reconnect() error {
 }
 
 func (c *userClient) dispatch() {
-	heartbeatTime := time.NewTicker(time.Duration(GetConfig().HeartbeatTime) * time.Second)
+	heartbeatTime := time.NewTicker(time.Duration(c.config.HeartbeatTime) * time.Second)
 	for {
 		select {
 		case req := <-c.sendCh:
@@ -107,7 +93,6 @@ func (c *userClient) dispatch() {
 				lg.Logger().Error("发送消息失败", zap.Error(err), zap.Any("req", req))
 			}
 		case res := <-c.receiveCh:
-			// TODO: 判断登录状态
 			c.writerMsg(res.ResponseID, res.ResMsg, res.MsgType)
 		case <-heartbeatTime.C:
 			err := c.sendHeartbeat()
@@ -150,7 +135,7 @@ func (c *userClient) Shutdown() {
 	_ = c.channel.CloseSend()
 	_ = c.rpc.conn.Close()
 
-	if err := c.msgHander.OfflineUser(model.MsgReq{UserID: c.userInfo.UserID}); err != nil {
+	if err := c.msgHandler.OfflineUser(model.MsgReq{UserID: c.userInfo.UserID}); err != nil {
 		lg.Logger().Error("发送离线消息失败", zap.Error(err))
 	}
 	c.msgWriter.Close()

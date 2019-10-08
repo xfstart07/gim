@@ -6,7 +6,7 @@ package client
 import (
 	"bufio"
 	"fmt"
-	"gim/client/handler"
+	"gim/client/service"
 	"gim/internal/ciface"
 	"gim/internal/lg"
 	"os"
@@ -22,7 +22,7 @@ func NewScan(ctx *context) *scanner {
 	return &scanner{
 		ctx:        ctx,
 		buffer:     bufio.NewScanner(os.Stdin),
-		msgHandler: handler.NewMessageHandler(ctx.client.userClient, GetConfig()),
+		msgHandler: service.NewMessageHandler(ctx.client.userClient, GetConfig()),
 	}
 }
 

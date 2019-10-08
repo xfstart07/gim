@@ -1,14 +1,13 @@
 // Author: xufei
 // Date: 2019-09-09 09:40
 
-package handler
+package service
 
 import (
 	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gim/client/service"
 	"gim/internal/ciface"
 	"gim/internal/lg"
 	"gim/model"
@@ -27,14 +26,14 @@ var (
 type messageHandler struct {
 	config          *model.ClientConfig
 	userClient      ciface.UserClient
-	innerCommandCtx *service.InnerCommandContext
+	innerCommandCtx *InnerCommandContext
 }
 
 func NewMessageHandler(userClient ciface.UserClient, cfg *model.ClientConfig) *messageHandler {
 	return &messageHandler{
 		config:          cfg,
 		userClient:      userClient,
-		innerCommandCtx: service.NewInnerCommandContext(cfg),
+		innerCommandCtx: NewInnerCommandContext(cfg),
 	}
 }
 

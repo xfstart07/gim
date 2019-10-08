@@ -5,7 +5,7 @@ package client
 
 import (
 	"fmt"
-	"gim/client/handler"
+	"gim/client/service"
 	"gim/internal/ciface"
 	"gim/internal/http_helper"
 	"gim/internal/lg"
@@ -26,7 +26,7 @@ func newHTTPServer(ctx *context) *httpServer {
 	server := &httpServer{
 		ctx:        ctx,
 		router:     gin.Default(),
-		msgHandler: handler.NewMessageHandler(ctx.client.userClient, GetConfig()),
+		msgHandler: service.NewMessageHandler(ctx.client.userClient, GetConfig()),
 	}
 
 	server.setRouter()
