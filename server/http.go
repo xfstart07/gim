@@ -61,10 +61,7 @@ func (s *httpServer) registerAccount(ctx *gin.Context) {
 	register, err := s.ctx.server.accountRegister(user)
 	if err != nil {
 		lg.Logger().Error("注册失败", zap.Error(err))
-		// TODO: 如何判断 err
-		//if errors.Cause(err) == constant.ErrAccountRegistered {
-		//	err = constant.ErrAccountRegistered
-		//}
+
 		http_helper.Render500(ctx, constant.ErrServerFail)
 		return
 	}
