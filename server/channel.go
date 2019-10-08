@@ -88,8 +88,9 @@ func (c *channelService) channelHandler(stream rpc_service.GIMService_ChannelSer
 			ChannelName: fmt.Sprintf("%s-%d", GetConfig().RpcPort, req.RequestID),
 		}
 		_ = c.ctx.server.accountSrv.StoreServerChannelInfo(req.RequestID, channelInfo)
-		// 用户订阅 redis 频道
-		c.ctx.server.SubscribeMessageByUser(channelInfo)
+
+		// 用户消息接收订阅
+		c.ctx.server.SubscribeMessage(channelInfo)
 
 		lg.Logger().Info(req.ReqMsg + " 用户登录成功")
 	}

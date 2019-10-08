@@ -4,7 +4,6 @@
 package server
 
 import (
-	"encoding/json"
 	"gim/internal/constant"
 	"gim/model"
 	"gim/pkg/rpc_service"
@@ -42,14 +41,12 @@ func (s *Server) sendP2PMsg(msg model.P2PReq) error {
 	channelInfo := s.accountSrv.ServerChannelInfo(msg.ReceiverID)
 
 	user := s.accountSrv.GetSessionByUserID(msg.UserID)
-	pushMsg := model.PushMsg{
+
+	err := s.PublishMessage(channelInfo.ChannelName, model.PushMsg{
 		UserID:  msg.ReceiverID,
 		Msg:     user.FormatMsg(msg.Msg),
 		MsgType: constant.ChatMsg,
-	}
-	msgBody, _ := json.Marshal(pushMsg)
-
-	err := s.Publish(channelInfo.ChannelName, string(msgBody))
+	})
 	if err != nil {
 		err = errors.WithStack(err)
 	}
@@ -58,5 +55,8 @@ func (s *Server) sendP2PMsg(msg model.P2PReq) error {
 }
 
 func (s *Server) sendGroupMsg(msg model.MsgReq) error {
-	return s.PublishGroup(msg)
+	return s.PublishMessage("", model.PushMsg{
+		UserID: msg.UserID,
+		Msg:    msg.Msg,
+	})
 }
