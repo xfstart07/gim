@@ -6,9 +6,10 @@ package etcdkit
 import (
 	"context"
 	"fmt"
-	"gim/internal/lg"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -21,13 +22,14 @@ type Resolver struct {
 	service string
 	cli     *clientv3.Client
 	cc      resolver.ClientConn
+	log     *zap.Logger
 }
 
 // NewResolver return resolver builder
 // target example: "http://127.0.0.1:2379,http://127.0.0.1:12379,http://127.0.0.1:22379"
 // service is service name
-func NewResolver(target string, service string) resolver.Builder {
-	return &Resolver{target: target, service: service}
+func NewResolver(target string, service string, log *zap.Logger) *Resolver {
+	return &Resolver{target: target, service: service, log: log}
 }
 
 // Scheme return etcdv3 schema
@@ -62,7 +64,7 @@ func (r *Resolver) Build(target resolver.Target, cc resolver.ClientConn, opts re
 }
 
 func (r *Resolver) watch(prefix string) {
-	lg.Logger().Info("etcd resolver watch...")
+	r.log.Info("etcd resolver watch...")
 
 	addrDict := make(map[string]resolver.Address)
 
@@ -97,7 +99,7 @@ func (r *Resolver) watch(prefix string) {
 			case mvccpb.PUT:
 				addrDict[string(ev.Kv.Key)] = resolver.Address{Addr: string(ev.Kv.Value)}
 			case mvccpb.DELETE:
-				lg.Logger().Info("Delete:=" + string(ev.PrevKv.Key))
+				r.log.Info("Delete:=" + string(ev.PrevKv.Key))
 				delete(addrDict, string(ev.PrevKv.Key))
 			}
 		}

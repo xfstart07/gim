@@ -22,7 +22,7 @@ func NewScan(ctx *context) *scanner {
 	return &scanner{
 		ctx:        ctx,
 		buffer:     bufio.NewScanner(os.Stdin),
-		msgHandler: handler.NewMessageHandler(GetConfig()),
+		msgHandler: handler.NewMessageHandler(ctx.client.userClient, GetConfig()),
 	}
 }
 

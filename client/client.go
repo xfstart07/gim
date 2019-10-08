@@ -6,7 +6,9 @@ package client
 import (
 	context2 "context"
 	"fmt"
+	"gim/client/handler"
 	"gim/client/service"
+	"gim/internal/ciface"
 	"gim/internal/constant"
 	"gim/internal/lg"
 	"gim/model"
@@ -24,8 +26,10 @@ type userClient struct {
 	ctx      *context
 	config   *model.ClientConfig
 	userInfo model.User
+	isExit   bool // 标记客户端是否已经退出，避免多次退出
 	errCount int
 
+	msgHander ciface.MessageHandler
 	msgWriter service.MsgLogger
 
 	rpc       *rpcServer
@@ -42,6 +46,7 @@ func newUserClient(ctx *context, cfg *model.ClientConfig) (uc *userClient) {
 		msgWriter: service.NewWriter(cfg),
 		userInfo:  cfg.User,
 	}
+	uc.msgHander = handler.NewMessageHandler(uc, GetConfig())
 
 	return
 }
@@ -130,20 +135,29 @@ func (c *userClient) dispatch() {
 					return
 				}
 			}
-
-			// receive user client shutdown signal
-			lg.Logger().Info("用户下线！")
 			return
 		}
 	}
 }
 
-func (c *userClient) shutdown() {
-	defer c.rpc.conn.Close()
+func (c *userClient) Shutdown() {
+	if c.isExit {
+		return
+	}
+
+	c.isExit = true
+
+	_ = c.channel.CloseSend()
+	_ = c.rpc.conn.Close()
+
+	if err := c.msgHander.OfflineUser(model.MsgReq{UserID: c.userInfo.UserID}); err != nil {
+		lg.Logger().Error("发送离线消息失败", zap.Error(err))
+	}
+	c.msgWriter.Close()
 
 	close(c.closeCh)
 
-	lg.Logger().Fatal("退出！")
+	lg.Logger().Fatal("用户下线！")
 }
 
 func (c *userClient) Login() {
@@ -183,8 +197,12 @@ func (c *userClient) recvPump() {
 				return
 			}
 
-			c.shutdown()
+			if err == grpc.ErrClientConnClosing {
+				return
+			}
+
 			lg.Logger().Error("消息接收失败", zap.Error(err))
+			c.Shutdown()
 			return
 		}
 
@@ -197,8 +215,8 @@ func (c *userClient) writerMsg(userID int64, msg string, msgType int32) {
 
 	if msgType == constant.LoginMsg {
 		if msg != "OK" {
-			// TODO: shutdown, user logined
-			c.shutdown()
+			// Shutdown, because user logined
+			c.Shutdown()
 		}
 	}
 

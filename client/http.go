@@ -17,14 +17,16 @@ import (
 )
 
 type httpServer struct {
+	ctx        *context
 	router     *gin.Engine
 	msgHandler ciface.MessageHandler
 }
 
-func newHTTPServer() *httpServer {
+func newHTTPServer(ctx *context) *httpServer {
 	server := &httpServer{
+		ctx:        ctx,
 		router:     gin.Default(),
-		msgHandler: handler.NewMessageHandler(GetConfig()),
+		msgHandler: handler.NewMessageHandler(ctx.client.userClient, GetConfig()),
 	}
 
 	server.setRouter()

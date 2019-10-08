@@ -19,10 +19,12 @@ func NewInnerCommandContext(cfg *model.ClientConfig) *InnerCommandContext {
 	}
 }
 
-func (c *InnerCommandContext) CreateCommander(cmd string) ciface.InnerCommander {
+func (c *InnerCommandContext) CreateCommander(userClient ciface.UserClient, cmd string) ciface.InnerCommander {
 	switch cmd {
 	case command.SystemCommandPrintOnlineUser:
 		return command.NewPrintOnlineUserCommand(c.config)
+	case command.SystemCommandShutdown:
+		return command.NewShutDownCommand(userClient)
 	}
 
 	return nil

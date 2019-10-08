@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"gim/client/service"
+	"gim/internal/ciface"
 	"gim/internal/lg"
 	"gim/model"
 	"io/ioutil"
@@ -25,12 +26,14 @@ var (
 
 type messageHandler struct {
 	config          *model.ClientConfig
+	userClient      ciface.UserClient
 	innerCommandCtx *service.InnerCommandContext
 }
 
-func NewMessageHandler(cfg *model.ClientConfig) *messageHandler {
+func NewMessageHandler(userClient ciface.UserClient, cfg *model.ClientConfig) *messageHandler {
 	return &messageHandler{
 		config:          cfg,
+		userClient:      userClient,
 		innerCommandCtx: service.NewInnerCommandContext(cfg),
 	}
 }
@@ -107,9 +110,28 @@ func (h *messageHandler) sendGroupMsg(req model.MsgReq) error {
 	return nil
 }
 
+func (h *messageHandler) OfflineUser(req model.MsgReq) error {
+	url := fmt.Sprintf("http://%s:%s/offlineUser", h.config.ServerIP, h.config.ServerPort)
+
+	msgBody, _ := json.Marshal(req)
+	lg.Logger().Debug(fmt.Sprintf("post = %s, %s", url, string(msgBody)))
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(msgBody))
+	if err != nil {
+		lg.Logger().Error("群聊消息发送失败", zap.Error(err))
+		return errP2PSendFail
+	}
+	defer resp.Body.Close()
+
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	lg.Logger().Info("发送结果" + string(respBody))
+
+	return nil
+}
+
 func (h *messageHandler) InnerCommand(msg string) bool {
 	if strings.HasPrefix(msg, ":") {
-		commander := h.innerCommandCtx.CreateCommander(msg)
+		commander := h.innerCommandCtx.CreateCommander(h.userClient, msg)
 		if commander != nil {
 			commander.Process(msg)
 		} else {

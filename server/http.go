@@ -38,6 +38,7 @@ func (s *httpServer) setRouter() {
 	s.router.POST("/sendP2PMsg", s.sendP2PMsg)
 	s.router.POST("/sendGroupMsg", s.sendGroupMsg)
 	s.router.GET("/onlineUsers", s.onlineUsers)
+	s.router.POST("/offlineUser", s.offlineUser)
 }
 
 func (s *httpServer) Run() {
@@ -139,4 +140,19 @@ func (s *httpServer) onlineUsers(ctx *gin.Context) {
 	users := s.ctx.server.getOnlineUsers()
 
 	http_helper.RenderOK(ctx, users)
+}
+
+func (s *httpServer) offlineUser(ctx *gin.Context) {
+	msg := model.MsgReq{}
+	err := ctx.Bind(&msg)
+	if err != nil {
+		http_helper.Render400(ctx, err)
+		return
+	}
+
+	// 用户下线
+	user := s.ctx.server.accountSrv.GetSessionByUserID(msg.UserID)
+	s.ctx.server.userOffline(user)
+
+	http_helper.RenderCreated(ctx, nil)
 }

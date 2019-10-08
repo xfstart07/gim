@@ -3,8 +3,11 @@
 
 package ciface
 
+import "gim/model"
+
 type MessageHandler interface {
 	InnerCommand(string) bool
 	CheckMsg(string) bool
 	SendMsg(string)
+	OfflineUser(req model.MsgReq) error
 }

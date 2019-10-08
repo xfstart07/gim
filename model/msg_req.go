@@ -5,5 +5,5 @@ package model
 
 type MsgReq struct {
 	UserID int64  `json:"user_id"`
-	Msg    string `json:"msg"`
+	Msg    string `json:"msg,omitempty"`
 }

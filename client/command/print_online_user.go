@@ -14,16 +14,16 @@ import (
 	"go.uber.org/zap"
 )
 
-type PrintOnlineUserCommand struct {
+type printOnlineUserCommand struct {
 	config *model.ClientConfig
 }
 
-func (c *PrintOnlineUserCommand) Process(msg string) {
+func (c *printOnlineUserCommand) Process(msg string) {
 	users := c.reqOnlineUsers()
 	c.print(users)
 }
 
-func (c *PrintOnlineUserCommand) print(users []model.User) {
+func (c *printOnlineUserCommand) print(users []model.User) {
 	lg.Logger().Info("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
 	for _, user := range users {
@@ -38,7 +38,7 @@ type onlineUsersResp struct {
 	Data []model.User `json:"data"`
 }
 
-func (c *PrintOnlineUserCommand) reqOnlineUsers() []model.User {
+func (c *printOnlineUserCommand) reqOnlineUsers() []model.User {
 	url := fmt.Sprintf("http://%s:%s/onlineUsers", c.config.ServerIP, c.config.ServerPort)
 
 	resp, err := http.Get(url)
@@ -59,8 +59,8 @@ func (c *PrintOnlineUserCommand) reqOnlineUsers() []model.User {
 	return result.Data
 }
 
-func NewPrintOnlineUserCommand(config *model.ClientConfig) *PrintOnlineUserCommand {
-	return &PrintOnlineUserCommand{
+func NewPrintOnlineUserCommand(config *model.ClientConfig) *printOnlineUserCommand {
+	return &printOnlineUserCommand{
 		config: config,
 	}
 }
