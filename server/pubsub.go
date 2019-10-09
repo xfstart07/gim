@@ -25,7 +25,8 @@ func (s *Server) PublishMessage(channelName string, msg model.PushMsg) error {
 	// group send message
 
 	channels := s.accountSrv.GetAllServerChannelInfo()
-	formatMsg := s.accountSrv.GetSessionByUserID(msg.UserID).FormatMsg(msg.Msg)
+	user := s.accountSrv.GetSessionByUserID(msg.UserID)
+	formatMsg := user.FormatMsg(msg.Msg)
 
 	for _, channel := range channels {
 		if msg.UserID == channel.UserID {

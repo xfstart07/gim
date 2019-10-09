@@ -33,3 +33,11 @@ build_server: vet_server
 gen_proto:
 	@echo generator protobuf
 	protoc --go_out=plugins=grpc:pkg/rpc_service -I protocol message.proto
+
+docker_build:
+	@echo docker build...
+	docker build -t registry.cn-hangzhou.aliyuncs.com/weixi/gim:client_v1 -f deployment/Dockerfile_client .
+	docker build -t registry.cn-hangzhou.aliyuncs.com/weixi/gim:server_v1 -f deployment/Dockerfile_server .
+
+docker_push:
+	docker push registry.cn-hangzhou.aliyuncs.com/weixi/gim:client_v1

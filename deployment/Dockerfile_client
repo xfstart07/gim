@@ -1,0 +1,14 @@
+FROM golang:latest as builder
+
+WORKDIR ${GOPATH}/src/gim
+
+COPY . .
+
+# 每次构建程序时都会创建一层新镜像，名称是 none
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o gim cmd/client/client.go
+
+FROM centos
+
+WORKDIR /data/gim
+
+COPY --from=builder /go/src/gim/gim .
