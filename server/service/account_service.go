@@ -29,6 +29,7 @@ type AccountServiceInterface interface {
 
 	StoreServerChannelInfo(userID int64, channelInfo model.UserChannelInfo) error
 	ServerChannelInfo(userID int64) model.UserChannelInfo
+	RemoveChannelInfo(userID int64)
 	GetAllServerChannelInfo() []model.UserChannelInfo
 	GetAllOnlineUsers() []model.User
 }

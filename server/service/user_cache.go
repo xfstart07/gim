@@ -56,6 +56,10 @@ func (s *accountService) ServerChannelInfo(userID int64) model.UserChannelInfo {
 	return channelInfo
 }
 
+func (s *accountService) RemoveChannelInfo(userID int64) {
+	s.store.Del(channelInfoKey(userID))
+}
+
 func channelInfoKey(userID int64) string {
 	return fmt.Sprintf("%s%d", constant.ServerChannelPrefixName, userID)
 }

@@ -48,8 +48,7 @@ func InitConfig() error {
 func defaultConfig() *model.ClientConfig {
 	return &model.ClientConfig{
 		WebPort:        "8082",
-		ServerIP:       "localhost",
-		ServerPort:     "8083",
+		ServerURL:      "http://localhost:8081",
 		LogLevel:       "info",
 		ReconnectCount: 3,
 		HeartbeatTime:  60,

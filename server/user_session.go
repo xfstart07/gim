@@ -6,14 +6,16 @@ package server
 import (
 	"gim/model"
 	"gim/pkg/rpc_service"
+	"gim/server/service"
 	"sync"
 )
 
 var userSessionMap *userSession
 
 type userSession struct {
-	ctx     *context
-	streams sync.Map
+	ctx        *context
+	streams    sync.Map
+	subscribes sync.Map
 }
 
 func newUserSession(ctx *context) *userSession {
@@ -60,4 +62,20 @@ func (s *userSession) rangStreams(f func(key, value interface{}) bool) {
 	s.streams.Range(func(key, value interface{}) bool {
 		return f(key, value)
 	})
+}
+
+func (s *userSession) putSubscribe(userID int64, sub service.PubSub) {
+	s.subscribes.Store(userID, sub)
+}
+
+func (s *userSession) getSubscribe(userID int64) service.PubSub {
+	sub, ok := s.subscribes.Load(userID)
+	if !ok {
+		return nil
+	}
+	return sub.(service.PubSub)
+}
+
+func (s *userSession) removeSubscribe(userID int64) {
+	s.subscribes.Delete(userID)
 }

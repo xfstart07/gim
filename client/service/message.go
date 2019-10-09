@@ -72,7 +72,7 @@ func (h *messageHandler) SendMsg(msg string) {
 }
 
 func (h *messageHandler) sendP2PMsg(req model.P2PReq) error {
-	url := fmt.Sprintf("http://%s:%s/sendP2PMsg", h.config.ServerIP, h.config.ServerPort)
+	url := fmt.Sprintf("%s/sendP2PMsg", h.config.ServerURL)
 
 	msgBody, _ := json.Marshal(req)
 	lg.Logger().Debug(fmt.Sprintf("post = %s, %s", url, string(msgBody)))
@@ -91,7 +91,7 @@ func (h *messageHandler) sendP2PMsg(req model.P2PReq) error {
 }
 
 func (h *messageHandler) sendGroupMsg(req model.MsgReq) error {
-	url := fmt.Sprintf("http://%s:%s/sendGroupMsg", h.config.ServerIP, h.config.ServerPort)
+	url := fmt.Sprintf("%s/sendGroupMsg", h.config.ServerURL)
 
 	msgBody, _ := json.Marshal(req)
 	lg.Logger().Debug(fmt.Sprintf("post = %s, %s", url, string(msgBody)))
@@ -104,13 +104,13 @@ func (h *messageHandler) sendGroupMsg(req model.MsgReq) error {
 	defer resp.Body.Close()
 
 	respBody, _ := ioutil.ReadAll(resp.Body)
-	lg.Logger().Info("发送结果" + string(respBody))
+	lg.Logger().Debug("发送结果" + string(respBody))
 
 	return nil
 }
 
 func (h *messageHandler) OfflineUser(req model.MsgReq) error {
-	url := fmt.Sprintf("http://%s:%s/offlineUser", h.config.ServerIP, h.config.ServerPort)
+	url := fmt.Sprintf("%s/offlineUser", h.config.ServerURL)
 
 	msgBody, _ := json.Marshal(req)
 	lg.Logger().Debug(fmt.Sprintf("post = %s, %s", url, string(msgBody)))

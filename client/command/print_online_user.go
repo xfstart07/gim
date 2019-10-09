@@ -39,7 +39,7 @@ type onlineUsersResp struct {
 }
 
 func (c *printOnlineUserCommand) reqOnlineUsers() []model.User {
-	url := fmt.Sprintf("http://%s:%s/onlineUsers", c.config.ServerIP, c.config.ServerPort)
+	url := fmt.Sprintf("%s/onlineUsers", c.config.ServerURL)
 
 	resp, err := http.Get(url)
 	if err != nil {

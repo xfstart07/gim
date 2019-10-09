@@ -8,6 +8,7 @@ import (
 	"gim/internal/constant"
 	"gim/internal/lg"
 	"gim/model"
+	"gim/server/service"
 
 	"github.com/pkg/errors"
 
@@ -19,7 +20,8 @@ func (s *Server) PublishMessage(channelName string, msg model.PushMsg) error {
 
 	if channelName != "" {
 		// a single message
-		return s.pubsubSrv.Publish(channelName, msg)
+
+		return s.pubSrv.Publish(channelName, msg)
 	}
 
 	// group send message
@@ -33,7 +35,7 @@ func (s *Server) PublishMessage(channelName string, msg model.PushMsg) error {
 			continue
 		}
 
-		err := s.pubsubSrv.Publish(channel.ChannelName, model.PushMsg{
+		err := s.pubSrv.Publish(channel.ChannelName, model.PushMsg{
 			UserID:  channel.UserID,
 			Msg:     formatMsg,
 			MsgType: constant.ChatMsg,
@@ -49,8 +51,8 @@ func (s *Server) PublishMessage(channelName string, msg model.PushMsg) error {
 	return errs
 }
 
-func (s *Server) SubscribeMessage(channelInfo model.UserChannelInfo) {
-	s.pubsubSrv.Subscribe(channelInfo, func(payload string) {
+func (s *Server) SubscribeMessage(pb service.PubSub, channelInfo model.UserChannelInfo) {
+	pb.Subscribe(channelInfo, func(payload string) {
 		lg.Logger().Info("接收到消息处理中...")
 
 		var msg model.PushMsg

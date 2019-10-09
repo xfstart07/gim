@@ -6,9 +6,8 @@ package model
 type ClientConfig struct {
 	User
 
-	WebPort    string `ini:"web_port"`
-	ServerIP   string `ini:"server_ip"`
-	ServerPort string `ini:"server_port"`
+	WebPort   string `ini:"web_port"`
+	ServerURL string `ini:"server_url"`
 
 	LogLevel       string `ini:"log_level"`
 	MsgLogPath     string `ini:"msg_log_path"`

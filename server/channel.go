@@ -9,6 +9,7 @@ import (
 	"gim/internal/lg"
 	"gim/model"
 	"gim/pkg/rpc_service"
+	"gim/server/service"
 	"io"
 
 	"go.uber.org/zap"
@@ -89,8 +90,11 @@ func (c *channelService) channelHandler(stream rpc_service.GIMService_ChannelSer
 		}
 		_ = c.ctx.server.accountSrv.StoreServerChannelInfo(req.RequestID, channelInfo)
 
+		pb := service.NewPubSubRedisService(c.ctx.server.redisClient)
+		userSessionMap.putSubscribe(channelInfo.UserID, pb)
+
 		// 用户消息接收订阅
-		c.ctx.server.SubscribeMessage(channelInfo)
+		c.ctx.server.SubscribeMessage(pb, channelInfo)
 
 		lg.Logger().Info(req.ReqMsg + " 用户登录成功")
 	}

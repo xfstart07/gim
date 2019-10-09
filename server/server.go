@@ -16,7 +16,7 @@ import (
 
 type Server struct {
 	redisClient *redis.Client
-	pubsubSrv   service.PubSub
+	pubSrv      service.PubSub
 	accountSrv  service.AccountServiceInterface
 	waitGroup   util.WaitGroupWrapper
 }
@@ -36,7 +36,7 @@ func (s *Server) Main() {
 	// set external service, redis
 	s.initRedis()
 	s.accountSrv = service.GetAccountService(s.redisClient)
-	s.pubsubSrv = service.NewPubSubRedisService(s.redisClient)
+	s.pubSrv = service.NewPubSubRedisService(s.redisClient)
 
 	ctx := &context{s}
 

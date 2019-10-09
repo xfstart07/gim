@@ -41,7 +41,6 @@ func (s *Server) sendP2PMsg(msg model.P2PReq) error {
 	channelInfo := s.accountSrv.ServerChannelInfo(msg.ReceiverID)
 
 	user := s.accountSrv.GetSessionByUserID(msg.UserID)
-
 	err := s.PublishMessage(channelInfo.ChannelName, model.PushMsg{
 		UserID:  msg.ReceiverID,
 		Msg:     user.FormatMsg(msg.Msg),

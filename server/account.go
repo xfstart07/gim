@@ -4,6 +4,7 @@
 package server
 
 import (
+	"gim/internal/lg"
 	"gim/model"
 	"time"
 )
@@ -18,6 +19,18 @@ func (s *Server) accountRegister(user model.User) (model.User, error) {
 func (s *Server) userOffline(user model.User) {
 	userSessionMap.ctx.server.accountSrv.RemoveSession(user.UserID)
 	userSessionMap.remove(user.UserID)
+
+	channelInfo := s.accountSrv.ServerChannelInfo(user.UserID)
+
+	pb := userSessionMap.getSubscribe(user.UserID)
+	if pb != nil {
+		if err := pb.UnSubscribe(channelInfo); err != nil {
+			lg.Logger().Error(err.Error())
+		}
+		userSessionMap.removeSubscribe(user.UserID)
+	}
+
+	s.accountSrv.RemoveChannelInfo(user.UserID)
 }
 
 func (s *Server) getOnlineUsers() []model.User {
