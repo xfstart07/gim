@@ -58,7 +58,7 @@ make run_server
 make run_client
 ```
 
-要启动多个客户端需要更新 `config/client.ini` 的用户信息
+要启动多个客户端需要修改 `config/client.ini` 的用户信息
 
 ## 构建
 
