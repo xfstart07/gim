@@ -65,3 +65,9 @@ make run_client
 ```bash
 make build_server
 ```
+
+## 部署
+
+### 配置 server
+
+请查看 [deployment/nginx/gim.conf] 文件.
