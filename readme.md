@@ -70,4 +70,4 @@ make build_server
 
 ### 配置 server
 
-请查看 [deployment/nginx/gim.conf] 文件.
+请查看 [deployment/nginx/gim.conf](deployment/nginx/gim.conf) 文件.
