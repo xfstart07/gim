@@ -41,7 +41,7 @@ curl -X POST --header 'Content-Type: application/json' -d '{"user_name": "leon"}
 返回信息
 
 ```json
-{"code":"0","message":"OK","data":{"user_id":1567996897857327000,"user_name":"baby"}}
+{"code":"0","message":"OK","data":{"user_id":1567996897857327000,"user_name":"leon"}}
 ```
 
 ## 使用
