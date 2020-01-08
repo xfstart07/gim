@@ -33,6 +33,8 @@ func (s *Server) Main() {
 	// 设置日志的级别
 	lg.SetLevel(GetConfig().LogLevel)
 
+	lg.Logger().Debug(fmt.Sprintf("%v", GetConfig()))
+
 	// set external service, redis
 	s.initRedis()
 	s.accountSrv = service.GetAccountService(s.redisClient)

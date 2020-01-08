@@ -3,9 +3,14 @@
 
 package main
 
-import "gim/server"
+import (
+	"flag"
+	"gim/server"
+)
 
 func main() {
+	flag.Parse()
+
 	srv := server.New()
 	srv.Main()
 }

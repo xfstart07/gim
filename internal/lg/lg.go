@@ -23,8 +23,7 @@ var (
 )
 
 func init() {
-	// FIXME：flag 是隐藏在不同的包中，还是统一放在 main 中好呢？
-	flag.StringVar(&stdLevel, "log_level", DebugLevel, "set server log level")
+	flag.StringVar(&stdLevel, "log", DebugLevel, "set server log level")
 
 	std = New(stdLevel)
 }
@@ -49,9 +48,7 @@ func New(lvl string) *zap.Logger {
 		config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	}
 
-	// FIXME: 采用 pkg/errors 的 WithStack 来打印调用栈
 	config.DisableStacktrace = false
-
 	config.DisableCaller = false
 	config.OutputPaths = []string{"stdout"}
 	config.ErrorOutputPaths = []string{"stdout"}
