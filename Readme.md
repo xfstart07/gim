@@ -18,7 +18,7 @@ Golang 实现 的 IM 系统。
 - [x]  10. 重构代码，将对象接口化，合理化
 - [x]  11. 用户退出，注销
 - [x]  12. 客户端获取所有用户列表
-- [ ]  13. 添加测试用例
+- [x]  13. 添加测试用例
 
 ## protobuf
 
@@ -71,3 +71,9 @@ make build_server
 ### 配置 server
 
 请查看 [deployment/nginx/gim.conf](deployment/nginx/gim.conf) 文件.
+
+### Ref 
+
+You've got Mail.
+
+<https://v.qq.com/x/cover/xnbwwtilv114645.html>
