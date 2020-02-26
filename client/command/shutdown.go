@@ -1,5 +1,4 @@
 // Author: xufei
-// Copyright: Yuwang Inc
 // Date: 2019-09-29
 
 package command

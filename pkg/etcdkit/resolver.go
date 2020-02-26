@@ -78,7 +78,6 @@ func (r *Resolver) watch(prefix string) {
 		r.cc.UpdateState(resolver.State{
 			Addresses: addrList,
 		})
-		//r.cc.NewAddress(addrList)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

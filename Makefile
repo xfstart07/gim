@@ -6,6 +6,7 @@ GO=go
 
 Server=cmd/server/server.go
 Client=cmd/client/client.go
+Route=cmd/route/main.go
 
 print:
 	@echo print gen_proto vet_server run_server
@@ -25,6 +26,10 @@ run_server: vet_server
 run_client: vet_client
 	@echo Run client
 	$(GO) run $(Client)
+
+run_route:
+	@echo Run route server
+	$(GO) run $(Route)
 
 build_server: vet_server
 	@echo Build Server
